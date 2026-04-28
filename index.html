@@ -36,7 +36,7 @@ body{display:flex;justify-content:center}
 .status .right{text-align:right}
 .board-wrap{padding:0 14px;display:flex;justify-content:center}
 .board{position:relative;width:min(calc(100vw - 28px), 402px);aspect-ratio:1;border:4px solid var(--line-bold);background:white;display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr);touch-action:manipulation}
-.cell{position:relative;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:clamp(17px,4.45vw,28px);background:var(--cell);user-select:none}
+.cell{position:relative;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:clamp(24px,6.1vw,42px);background:var(--cell);user-select:none}
 .cell.fixed{background:var(--fixed)}
 .cell.scope{background:var(--scope)}
 .cell.same{background:var(--same)}
@@ -44,8 +44,10 @@ body{display:flex;justify-content:center}
 .cell.selected{background:var(--sel)}
 .cell.error::after{content:"";position:absolute;right:11%;bottom:11%;width:14%;height:14%;border-radius:50%;background:var(--red)}
 .cell .val{position:relative;z-index:2}
-.notes{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:3%;font-weight:500;color:#6d6d6d;font-size:clamp(6px,1.35vw,9px);line-height:1;overflow:hidden}
-.note{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;overflow:hidden}
+.notes{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:8%;box-sizing:border-box;font-weight:500;color:#666;font-size:clamp(9px,1.95vw,14px);line-height:.9;overflow:hidden}
+.note{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;overflow:hidden;padding:1px;box-sizing:border-box}
+.note.auto{color:#666}
+.note.manual{color:#d10000;font-weight:650}
 .thick-r{border-right:4px solid var(--line)}
 .thick-b{border-bottom:4px solid var(--line)}
 .controls{padding:6px 20px 2px}
@@ -172,13 +174,14 @@ body{display:flex;justify-content:center}
     win: document.getElementById('winOverlay')
   };
 
-  const STORAGE_KEY = 'sudoku-single-file-save-v3';
+  const STORAGE_KEY = 'sudoku-single-file-save-v4';
   const state = {
     puzzle: Array(81).fill(0),
     solution: Array(81).fill(0),
     values: Array(81).fill(0),
     fixed: Array(81).fill(false),
     notes: Array.from({length:81},()=>new Set()),
+    autoNotes: Array.from({length:81},()=>new Set()),
     selected: -1,
     mode: 'normal',
     autoCandidate: false,
@@ -212,6 +215,7 @@ body{display:flex;justify-content:center}
     const payload = {
       ...state,
       notes: state.notes.map(s => [...s]),
+      autoNotes: state.autoNotes.map(s => [...s]),
       invalidCells: [...state.invalidCells]
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -223,7 +227,8 @@ body{display:flex;justify-content:center}
     try{
       const data = JSON.parse(raw);
       Object.assign(state, data);
-      state.notes = data.notes.map(a => new Set(a));
+      state.notes = (data.notes || Array.from({length:81},()=>[])).map(a => new Set(a));
+      state.autoNotes = (data.autoNotes || Array.from({length:81},()=>[])).map(a => new Set(a));
       state.invalidCells = new Set(data.invalidCells || []);
       return true;
     }catch(e){ return false; }
@@ -349,6 +354,7 @@ body{display:flex;justify-content:center}
     state.values = gen.puzzle.slice();
     state.fixed = gen.puzzle.map(v => v !== 0);
     state.notes = Array.from({length:81},()=>new Set());
+    state.autoNotes = Array.from({length:81},()=>new Set());
     state.startedAt = Date.now();
     state.elapsedBeforePause = 0;
     setMode('normal');
@@ -374,10 +380,9 @@ body{display:flex;justify-content:center}
   }
 
   function updateAutoCandidates(){
-    if(!state.autoCandidate) return;
     for(let i=0;i<81;i++){
-      if(state.values[i]) state.notes[i] = new Set();
-      else state.notes[i] = new Set(getCandidates(state.values, i));
+      if(!state.autoCandidate || state.values[i]) state.autoNotes[i] = new Set();
+      else state.autoNotes[i] = new Set(getCandidates(state.values, i));
     }
   }
 
@@ -385,6 +390,7 @@ body{display:flex;justify-content:center}
     state.undo.push({
       values: state.values.slice(),
       notes: cloneNotes(state.notes),
+      autoNotes: cloneNotes(state.autoNotes),
       errors: state.errors,
       invalid: new Set(state.invalidCells),
       autoCandidate: state.autoCandidate
@@ -397,6 +403,7 @@ body{display:flex;justify-content:center}
     if(!prev) return;
     state.values = prev.values.slice();
     state.notes = cloneNotes(prev.notes);
+    state.autoNotes = cloneNotes(prev.autoNotes || Array.from({length:81},()=>new Set()));
     // Keep error count persistent like the reference app: Undo does not reduce mistakes.
     state.invalidCells = new Set(prev.invalid);
     state.autoCandidate = prev.autoCandidate;
@@ -425,9 +432,11 @@ body{display:flex;justify-content:center}
       if(n===0) {
         state.values[i] = 0;
         state.notes[i].clear();
+        state.autoNotes[i].clear();
       } else {
         state.values[i] = n;
         state.notes[i].clear();
+        state.autoNotes[i].clear();
         if(n !== state.solution[i]) state.errors += 1;
       }
       recomputeInvalid();
@@ -497,11 +506,14 @@ body{display:flex;justify-content:center}
       } else {
         const notesWrap = document.createElement('div');
         notesWrap.className = 'notes';
-        const notes = state.notes[i];
+        const manual = state.notes[i];
+        const auto = state.autoCandidate ? state.autoNotes[i] : new Set();
         for(let n=1;n<=9;n++){
           const s = document.createElement('div');
-          s.className = 'note';
-          s.textContent = notes.has(n) ? n : '';
+          const isManual = manual.has(n);
+          const isAuto = auto.has(n);
+          s.className = 'note' + (isManual ? ' manual' : (isAuto ? ' auto' : ''));
+          s.textContent = (isManual || isAuto) ? n : '';
           notesWrap.appendChild(s);
         }
         d.appendChild(notesWrap);
