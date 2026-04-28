@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<title>Sudoku</title>
+<style>
+:root{
+  --bg:#f3f3f3;
+  --line:#9c9c9c;
+  --line-bold:#111;
+  --text:#111;
+  --muted:#6b6b6b;
+  --given:#111;
+  --sel:#e59a00;
+  --scope:#efe1b7;
+  --same:#f5a100;
+  --cell:#f7f7f7;
+  --fixed:#efefef;
+  --btn:#e7e7e7;
+  --btn-border:#b0b0b0;
+  --accent:#111;
+  --red:#ff5b73;
+  --blue:#2287f6;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text)}
+body{display:flex;justify-content:center}
+.app{width:min(100vw,430px);min-height:100%;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.topbar{height:28px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid #d7d7d7}
+.icon-btn{font-size:22px;line-height:1;background:none;border:none;color:#111;padding:2px 4px}
+.status{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:3px 22px 4px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:24px;line-height:1.05}
+.status .center{text-align:center;cursor:pointer;user-select:none}
+.status .right{text-align:right}
+.board-wrap{padding:0 14px;display:flex;justify-content:center}
+.board{position:relative;width:min(calc(100vw - 28px), 402px);aspect-ratio:1;border:4px solid var(--line-bold);background:white;display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr);touch-action:manipulation}
+.cell{position:relative;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:clamp(17px,4.45vw,28px);background:var(--cell);user-select:none}
+.cell.fixed{background:var(--fixed)}
+.cell.scope{background:var(--scope)}
+.cell.same{background:var(--same)}
+.cell.same .val{color:#111}
+.cell.selected{background:var(--sel)}
+.cell.error::after{content:"";position:absolute;right:11%;bottom:11%;width:14%;height:14%;border-radius:50%;background:var(--red)}
+.cell .val{position:relative;z-index:2}
+.notes{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:3%;font-weight:500;color:#6d6d6d;font-size:clamp(6px,1.35vw,9px);line-height:1;overflow:hidden}
+.note{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;overflow:hidden}
+.thick-r{border-right:4px solid var(--line)}
+.thick-b{border-bottom:4px solid var(--line)}
+.controls{padding:6px 20px 2px}
+.mode-row{display:grid;grid-template-columns:1fr 1fr .78fr;gap:10px;margin-bottom:6px}
+.btn{border:2px solid var(--btn-border);background:var(--btn);border-radius:6px;color:#111;font-size:18px;padding:4px 5px;text-align:center;min-height:38px;font-weight:600}
+.btn.tab{font-size:17px;font-weight:500}
+.btn.active{background:#111;color:#fff;border-color:#111}
+.btn.disabled{color:#999;background:#ececec}
+.num-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.small-row{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:4px;font-size:13px;height:20px;line-height:1}
+.checkbox{width:16px;height:16px;border:2px solid #a9a9a9;border-radius:7px;background:white;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.checkbox.checked{background:var(--blue);border-color:var(--blue);color:white;font-weight:700}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50}
+.panel{width:min(100%,360px);background:white;border-radius:18px;padding:22px;box-shadow:0 18px 40px rgba(0,0,0,.18)}
+.panel h1{margin:0 0 8px;font-size:34px}
+.panel p{margin:0 0 18px;color:#4d4d4d;line-height:1.35}
+.panel .stack{display:grid;gap:12px}
+.panel .stack .btn{font-size:22px}
+.row-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#111;color:white;padding:10px 14px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
+.toast.show{opacity:1}
+@media (max-width:390px){
+  .status{font-size:22px;padding-inline:14px}
+  .btn{font-size:17px;min-height:36px}
+  .btn.tab{font-size:16px}
+  .controls{padding:5px 16px 2px}
+  .small-row{font-size:12px;margin-top:3px;height:18px}
+  .board{width:min(calc(100vw - 28px), 402px)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <button class="icon-btn" id="newBtn" aria-label="New game">‹</button>
+    <div>
+      <button class="icon-btn" id="helpBtn" aria-label="Help">?</button>
+      <button class="icon-btn" id="menuBtn" aria-label="Menu">⋯</button>
+    </div>
+  </div>
+
+  <div class="status">
+    <div id="difficultyLabel">Medium</div>
+    <div class="center"><span id="timer">0:00</span> <span id="pauseMark">❚❚</span></div>
+    <div class="right">Errors: <span id="errors">0</span></div>
+  </div>
+
+  <div class="board-wrap"><div class="board" id="board"></div></div>
+
+  <div class="controls">
+    <div class="mode-row">
+      <button class="btn tab active" id="normalMode">Normal</button>
+      <button class="btn tab" id="candidateMode">Candidate</button>
+      <button class="btn" id="undoBtn">Undo</button>
+    </div>
+    <div class="num-grid" id="numberPad"></div>
+    <div class="small-row" id="autoCandRow">
+      <div class="checkbox" id="autoCandBox"></div>
+      <div>Auto Candidate Mode</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="startOverlay">
+  <div class="panel">
+    <h1>Sudoku</h1>
+    <p>Offline single-file version for iPhone Safari. Medium and Hard only, with unlimited puzzles.</p>
+    <div class="stack">
+      <button class="btn active" data-diff="Medium">Medium</button>
+      <button class="btn" data-diff="Hard">Hard</button>
+    </div>
+    <div class="row-actions">
+      <button class="btn" id="resumeBtn">Resume Saved</button>
+      <button class="btn" id="clearSaveBtn">Clear Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="menuOverlay" style="display:none">
+  <div class="panel">
+    <h1 style="font-size:28px">Game Menu</h1>
+    <div class="stack">
+      <button class="btn" id="newMediumBtn">New Medium</button>
+      <button class="btn" id="newHardBtn">New Hard</button>
+      <button class="btn" id="togglePauseBtn">Pause / Resume</button>
+      <button class="btn" id="closeMenuBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="helpOverlay" style="display:none">
+  <div class="panel">
+    <h1 style="font-size:28px">How it works</h1>
+    <p>Tap a square, then a number. Use Candidate mode for pencil marks. Auto Candidate fills and refreshes notes automatically. Wrong entries increase the error counter and mark conflicts.</p>
+    <div class="stack"><button class="btn" id="closeHelpBtn">Got it</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="winOverlay" style="display:none">
+  <div class="panel">
+    <h1>You solved it.</h1>
+    <p id="winText"></p>
+    <div class="stack">
+      <button class="btn active" id="playAgainBtn">Play Again</button>
+      <button class="btn" id="winMenuBtn">Choose Difficulty</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const boardEl = document.getElementById('board');
+  const timerEl = document.getElementById('timer');
+  const errorsEl = document.getElementById('errors');
+  const diffEl = document.getElementById('difficultyLabel');
+  const pauseMarkEl = document.getElementById('pauseMark');
+  const numberPadEl = document.getElementById('numberPad');
+  const overlays = {
+    start: document.getElementById('startOverlay'),
+    menu: document.getElementById('menuOverlay'),
+    help: document.getElementById('helpOverlay'),
+    win: document.getElementById('winOverlay')
+  };
+
+  const STORAGE_KEY = 'sudoku-single-file-save-v3';
+  const state = {
+    puzzle: Array(81).fill(0),
+    solution: Array(81).fill(0),
+    values: Array(81).fill(0),
+    fixed: Array(81).fill(false),
+    notes: Array.from({length:81},()=>new Set()),
+    selected: -1,
+    mode: 'normal',
+    autoCandidate: false,
+    errors: 0,
+    difficulty: 'Medium',
+    undo: [],
+    paused: false,
+    startedAt: Date.now(),
+    elapsedBeforePause: 0,
+    invalidCells: new Set()
+  };
+
+  const difficultyConfig = {
+    Medium: { clues: 30, minScore: 145 },
+    Hard: { clues: 23, minScore: 190 }
+  };
+
+  function cloneNotes(notes){ return notes.map(s => new Set([...s])); }
+  function rc(i){ return [Math.floor(i/9), i%9]; }
+  function idx(r,c){ return r*9+c; }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=>t.classList.remove('show'), 1600);
+  }
+
+  function saveState(){
+    const payload = {
+      ...state,
+      notes: state.notes.map(s => [...s]),
+      invalidCells: [...state.invalidCells]
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  }
+
+  function restoreState(){
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    try{
+      const data = JSON.parse(raw);
+      Object.assign(state, data);
+      state.notes = data.notes.map(a => new Set(a));
+      state.invalidCells = new Set(data.invalidCells || []);
+      return true;
+    }catch(e){ return false; }
+  }
+
+  function clearSave(){ localStorage.removeItem(STORAGE_KEY); }
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function getCandidates(grid, i){
+    if(grid[i]) return [];
+    const [r,c] = rc(i);
+    const used = new Set();
+    for(let x=0;x<9;x++){
+      used.add(grid[idx(r,x)]);
+      used.add(grid[idx(x,c)]);
+    }
+    const br = Math.floor(r/3)*3, bc = Math.floor(c/3)*3;
+    for(let rr=br;rr<br+3;rr++) for(let cc=bc;cc<bc+3;cc++) used.add(grid[idx(rr,cc)]);
+    const out=[];
+    for(let n=1;n<=9;n++) if(!used.has(n)) out.push(n);
+    return out;
+  }
+
+  function solve(grid, limit=2){
+    const g = grid.slice();
+    let count = 0;
+    let first = null;
+    function helper(){
+      if(count >= limit) return;
+      let best = -1, cand = null;
+      for(let i=0;i<81;i++) if(!g[i]){
+        const c = getCandidates(g, i);
+        if(c.length===0) return;
+        if(!cand || c.length < cand.length){ best = i; cand = c; if(c.length===1) break; }
+      }
+      if(best === -1){
+        count++;
+        if(!first) first = g.slice();
+        return;
+      }
+      for(const n of shuffle(cand)){
+        g[best] = n;
+        helper();
+        g[best] = 0;
+        if(count >= limit) return;
+      }
+    }
+    helper();
+    return { count, solution: first };
+  }
+
+  function generateSolved(){
+    const g = Array(81).fill(0);
+    // seed diagonal boxes for variety
+    [0,3,6].forEach(start => {
+      const nums = shuffle([1,2,3,4,5,6,7,8,9]);
+      let k=0;
+      for(let r=start;r<start+3;r++) for(let c=start;c<start+3;c++) g[idx(r,c)] = nums[k++];
+    });
+    const res = solve(g,1);
+    return res.solution;
+  }
+
+  function difficultyScore(puzzle){
+    // approximate: fewer clues + branching pressure
+    let total = 0, empties = 0, singles = 0;
+    for(let i=0;i<81;i++) if(!puzzle[i]){
+      empties++;
+      const c = getCandidates(puzzle, i).length;
+      total += c;
+      if(c===1) singles++;
+    }
+    return total + empties*2 - singles*3;
+  }
+
+  function generatePuzzle(diff){
+    const cfg = difficultyConfig[diff];
+    const cluesTarget = cfg.clues;
+    let best = null;
+    for(let attempt=0; attempt<(diff==='Hard'?18:10); attempt++){
+      const solution = generateSolved();
+      const puzzle = solution.slice();
+      const cells = shuffle([...Array(81).keys()]);
+      for(const i of cells){
+        const old = puzzle[i];
+        puzzle[i] = 0;
+        const filled = puzzle.filter(Boolean).length;
+        if(filled < cluesTarget){ puzzle[i] = old; continue; }
+        const res = solve(puzzle,2);
+        if(res.count !== 1) puzzle[i] = old;
+      }
+      const score = difficultyScore(puzzle);
+      if(!best || (diff === 'Hard' ? score > best.score : score < best.score || best.clues > puzzle.filter(Boolean).length)){
+        best = { puzzle, solution, score, clues: puzzle.filter(Boolean).length };
+      }
+      if(diff==='Hard' && score >= cfg.minScore && puzzle.filter(Boolean).length <= cluesTarget+1) break;
+    }
+    return best;
+  }
+
+  function newGame(diff){
+    showOverlay(null);
+    diffEl.textContent = diff;
+    state.difficulty = diff;
+    state.mode = 'normal';
+    state.autoCandidate = false;
+    state.errors = 0;
+    state.undo = [];
+    state.selected = -1;
+    state.invalidCells = new Set();
+    state.paused = false;
+    pauseMarkEl.textContent = '❚❚';
+    const gen = generatePuzzle(diff);
+    state.puzzle = gen.puzzle.slice();
+    state.solution = gen.solution.slice();
+    state.values = gen.puzzle.slice();
+    state.fixed = gen.puzzle.map(v => v !== 0);
+    state.notes = Array.from({length:81},()=>new Set());
+    state.startedAt = Date.now();
+    state.elapsedBeforePause = 0;
+    setMode('normal');
+    updateAutoCandidates();
+    render();
+    saveState();
+  }
+
+  function setMode(mode){
+    state.mode = mode;
+    document.getElementById('normalMode').classList.toggle('active', mode==='normal');
+    document.getElementById('candidateMode').classList.toggle('active', mode==='candidate');
+  }
+
+  function setAutoCandidate(on){
+    state.autoCandidate = on;
+    const box = document.getElementById('autoCandBox');
+    box.classList.toggle('checked', on);
+    box.textContent = on ? '✓' : '';
+    updateAutoCandidates();
+    render();
+    saveState();
+  }
+
+  function updateAutoCandidates(){
+    if(!state.autoCandidate) return;
+    for(let i=0;i<81;i++){
+      if(state.values[i]) state.notes[i] = new Set();
+      else state.notes[i] = new Set(getCandidates(state.values, i));
+    }
+  }
+
+  function pushUndo(){
+    state.undo.push({
+      values: state.values.slice(),
+      notes: cloneNotes(state.notes),
+      errors: state.errors,
+      invalid: new Set(state.invalidCells),
+      autoCandidate: state.autoCandidate
+    });
+    if(state.undo.length > 100) state.undo.shift();
+  }
+
+  function doUndo(){
+    const prev = state.undo.pop();
+    if(!prev) return;
+    state.values = prev.values.slice();
+    state.notes = cloneNotes(prev.notes);
+    // Keep error count persistent like the reference app: Undo does not reduce mistakes.
+    state.invalidCells = new Set(prev.invalid);
+    state.autoCandidate = prev.autoCandidate;
+    document.getElementById('autoCandBox').classList.toggle('checked', state.autoCandidate);
+    document.getElementById('autoCandBox').textContent = state.autoCandidate ? '✓' : '';
+    render(); saveState();
+  }
+
+  function recomputeInvalid(){
+    const invalid = new Set();
+    for(let i=0;i<81;i++){
+      const v = state.values[i];
+      if(v && v !== state.solution[i]) invalid.add(i);
+    }
+    state.invalidCells = invalid;
+  }
+
+  function handleEntry(n){
+    const i = state.selected;
+    if(i < 0 || state.fixed[i] || state.paused) return;
+    pushUndo();
+    if(state.mode === 'candidate'){
+      if(n===0) state.notes[i].clear();
+      else if(state.notes[i].has(n)) state.notes[i].delete(n); else state.notes[i].add(n);
+    } else {
+      if(n===0) {
+        state.values[i] = 0;
+        state.notes[i].clear();
+      } else {
+        state.values[i] = n;
+        state.notes[i].clear();
+        if(n !== state.solution[i]) state.errors += 1;
+      }
+      recomputeInvalid();
+      updateAutoCandidates();
+      checkWin();
+    }
+    render(); saveState();
+  }
+
+  function checkWin(){
+    for(let i=0;i<81;i++) if(state.values[i] !== state.solution[i]) return false;
+    const finalElapsed = getElapsed();
+    state.elapsedBeforePause = finalElapsed;
+    state.paused = true;
+    saveState();
+    document.getElementById('winText').textContent = `${state.difficulty} completed in ${formatTime(finalElapsed)} with ${state.errors} error${state.errors===1?'':'s'}.`;
+    showOverlay('win');
+    return true;
+  }
+
+  function formatTime(sec){
+    const m = Math.floor(sec/60); const s = sec%60;
+    return `${m}:${String(s).padStart(2,'0')}`;
+  }
+  function getElapsed(){
+    return Math.floor(state.elapsedBeforePause + (state.paused ? 0 : (Date.now()-state.startedAt)/1000));
+  }
+
+  function render(){
+    diffEl.textContent = state.difficulty;
+    errorsEl.textContent = state.errors;
+    renderBoard();
+    timerEl.textContent = formatTime(getElapsed());
+    document.getElementById('undoBtn').classList.toggle('disabled', state.undo.length===0);
+    const counts = Array(10).fill(0);
+    state.values.forEach(v => counts[v]++);
+    [...numberPadEl.children].forEach((btn, idx) => {
+      const n = idx<9 ? idx+1 : 0;
+      if(n && counts[n] >= 9) btn.classList.add('disabled'); else btn.classList.remove('disabled');
+    });
+  }
+
+  function renderBoard(){
+    boardEl.innerHTML = '';
+    const sel = state.selected;
+    const selectedVal = sel >= 0 ? state.values[sel] : 0;
+    for(let i=0;i<81;i++){
+      const d = document.createElement('div');
+      d.className = 'cell';
+      const [r,c] = rc(i);
+      if(c===2 || c===5) d.classList.add('thick-r');
+      if(r===2 || r===5) d.classList.add('thick-b');
+      if(state.fixed[i]) d.classList.add('fixed');
+      if(sel >= 0){
+        const [sr,sc] = rc(sel);
+        const sameBox = Math.floor(sr/3)===Math.floor(r/3) && Math.floor(sc/3)===Math.floor(c/3);
+        if(r===sr || c===sc || sameBox) d.classList.add('scope');
+        if(selectedVal && state.values[i]===selectedVal) d.classList.add('same');
+      }
+      if(i===sel) d.classList.add('selected');
+      if(state.invalidCells.has(i)) d.classList.add('error');
+      if(state.values[i]){
+        const v = document.createElement('div');
+        v.className = 'val';
+        v.textContent = state.values[i];
+        d.appendChild(v);
+      } else {
+        const notesWrap = document.createElement('div');
+        notesWrap.className = 'notes';
+        const notes = state.notes[i];
+        for(let n=1;n<=9;n++){
+          const s = document.createElement('div');
+          s.className = 'note';
+          s.textContent = notes.has(n) ? n : '';
+          notesWrap.appendChild(s);
+        }
+        d.appendChild(notesWrap);
+      }
+      d.addEventListener('click', ()=>{ if(!state.paused){ state.selected = i; render(); saveState(); } });
+      boardEl.appendChild(d);
+    }
+  }
+
+  function showOverlay(name){
+    Object.keys(overlays).forEach(k => overlays[k].style.display = (k===name ? 'flex' : 'none'));
+  }
+
+  function togglePause(){
+    if(state.paused){
+      state.startedAt = Date.now();
+      state.paused = false;
+      pauseMarkEl.textContent = '❚❚';
+    } else {
+      state.elapsedBeforePause = getElapsed();
+      state.paused = true;
+      pauseMarkEl.textContent = '▶';
+    }
+    render(); saveState();
+  }
+
+  function initPad(){
+    for(let n=1;n<=9;n++){
+      const b = document.createElement('button');
+      b.className = 'btn'; b.textContent = n;
+      b.addEventListener('click', ()=>handleEntry(n));
+      numberPadEl.appendChild(b);
+    }
+    const del = document.createElement('button');
+    del.className = 'btn'; del.textContent = '✕';
+    del.addEventListener('click', ()=>handleEntry(0));
+    numberPadEl.appendChild(del);
+  }
+
+  initPad();
+  document.getElementById('normalMode').onclick = ()=>{ setMode('normal'); render(); saveState(); };
+  document.getElementById('candidateMode').onclick = ()=>{ setMode('candidate'); render(); saveState(); };
+  document.getElementById('undoBtn').onclick = ()=>doUndo();
+  document.getElementById('autoCandRow').onclick = ()=>setAutoCandidate(!state.autoCandidate);
+  document.getElementById('menuBtn').onclick = ()=>showOverlay('menu');
+  document.getElementById('helpBtn').onclick = ()=>showOverlay('help');
+  document.getElementById('closeMenuBtn').onclick = ()=>showOverlay(null);
+  document.getElementById('closeHelpBtn').onclick = ()=>showOverlay(null);
+  document.getElementById('togglePauseBtn').onclick = ()=>{ togglePause(); showOverlay(null); };
+  document.querySelector('.status .center').onclick = ()=>togglePause();
+  document.getElementById('newMediumBtn').onclick = ()=>newGame('Medium');
+  document.getElementById('newHardBtn').onclick = ()=>newGame('Hard');
+  document.getElementById('newBtn').onclick = ()=>showOverlay('menu');
+  document.getElementById('playAgainBtn').onclick = ()=>newGame(state.difficulty);
+  document.getElementById('winMenuBtn').onclick = ()=>showOverlay('start');
+  document.getElementById('resumeBtn').onclick = ()=>{
+    if(restoreState()){
+      setMode(state.mode);
+      setAutoCandidate(state.autoCandidate);
+      state.startedAt = Date.now();
+      state.paused = false;
+      pauseMarkEl.textContent = '❚❚';
+      showOverlay(null); render(); saveState();
+    } else showToast('No saved game found');
+  };
+  document.getElementById('clearSaveBtn').onclick = ()=>{ clearSave(); showToast('Saved game cleared'); };
+  document.querySelectorAll('#startOverlay [data-diff]').forEach(btn => btn.onclick = ()=>newGame(btn.dataset.diff));
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key>='1' && e.key<='9') handleEntry(Number(e.key));
+    if(e.key==='Backspace' || e.key==='Delete') handleEntry(0);
+    if(e.key==='n') setMode('normal');
+    if(e.key==='c') setMode('candidate');
+  });
+
+
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden && !state.paused){
+      state.elapsedBeforePause = getElapsed();
+      state.paused = true;
+      pauseMarkEl.textContent = '▶';
+      saveState();
+    }
+  });
+
+  setInterval(()=>{ if(!state.paused) timerEl.textContent = formatTime(getElapsed()); }, 1000);
+
+  if(restoreState()){
+    setMode(state.mode);
+    setAutoCandidate(state.autoCandidate);
+    state.startedAt = Date.now();
+    showOverlay('start');
+  } else {
+    showOverlay('start');
+  }
+})();
+</script>
+</body>
+</html>
