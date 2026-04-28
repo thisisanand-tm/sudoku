@@ -114,9 +114,10 @@ body{display:flex;justify-content:center}
 <div class="overlay" id="startOverlay">
   <div class="panel">
     <h1>Sudoku</h1>
-    <p>Offline single-file version for iPhone Safari. Medium and Hard only, with unlimited puzzles.</p>
+    <p>Offline single-file version for iPhone Safari. Sissy mode, Medium and Hard, with unlimited puzzles.</p>
     <div class="stack">
-      <button class="btn active" data-diff="Medium">Medium</button>
+      <button class="btn active" data-diff="Sissy mode">Sissy mode</button>
+      <button class="btn" data-diff="Medium">Medium</button>
       <button class="btn" data-diff="Hard">Hard</button>
     </div>
     <div class="row-actions">
@@ -130,6 +131,7 @@ body{display:flex;justify-content:center}
   <div class="panel">
     <h1 style="font-size:28px">Game Menu</h1>
     <div class="stack">
+      <button class="btn" id="newSissyBtn">New Sissy mode</button>
       <button class="btn" id="newMediumBtn">New Medium</button>
       <button class="btn" id="newHardBtn">New Hard</button>
       <button class="btn" id="togglePauseBtn">Pause / Resume</button>
@@ -186,7 +188,7 @@ body{display:flex;justify-content:center}
     mode: 'normal',
     autoCandidate: false,
     errors: 0,
-    difficulty: 'Medium',
+    difficulty: 'Sissy mode',
     undo: [],
     paused: false,
     startedAt: Date.now(),
@@ -195,6 +197,7 @@ body{display:flex;justify-content:center}
   };
 
   const difficultyConfig = {
+    'Sissy mode': { clues: 42, minScore: 80 },
     Medium: { clues: 30, minScore: 145 },
     Hard: { clues: 23, minScore: 190 }
   };
@@ -319,7 +322,7 @@ body{display:flex;justify-content:center}
     const cfg = difficultyConfig[diff];
     const cluesTarget = cfg.clues;
     let best = null;
-    for(let attempt=0; attempt<(diff==='Hard'?18:10); attempt++){
+    for(let attempt=0; attempt<(diff==='Hard'?18:(diff==='Sissy mode'?6:10)); attempt++){
       const solution = generateSolved();
       const puzzle = solution.slice();
       const cells = shuffle([...Array(81).keys()]);
@@ -334,10 +337,11 @@ body{display:flex;justify-content:center}
       const verified = solve(puzzle, 2);
       if(verified.count !== 1 || !verified.solution) continue;
       const score = difficultyScore(puzzle);
-      if(!best || (diff === 'Hard' ? score > best.score : score < best.score || best.clues > puzzle.filter(Boolean).length)){
+      if(!best || (diff === 'Hard' ? score > best.score : (diff === 'Sissy mode' ? (puzzle.filter(Boolean).length > best.clues || (puzzle.filter(Boolean).length === best.clues && score < best.score)) : (score < best.score || best.clues > puzzle.filter(Boolean).length)))){
         best = { puzzle, solution: verified.solution, score, clues: puzzle.filter(Boolean).length };
       }
       if(diff==='Hard' && score >= cfg.minScore && puzzle.filter(Boolean).length <= cluesTarget+1) break;
+      if(diff==='Sissy mode' && puzzle.filter(Boolean).length >= cluesTarget) break;
     }
     if(!best) return generatePuzzle(diff);
     return best;
@@ -571,6 +575,7 @@ body{display:flex;justify-content:center}
   document.getElementById('closeHelpBtn').onclick = ()=>showOverlay(null);
   document.getElementById('togglePauseBtn').onclick = ()=>{ togglePause(); showOverlay(null); };
   document.querySelector('.status .center').onclick = ()=>togglePause();
+  document.getElementById('newSissyBtn').onclick = ()=>newGame('Sissy mode');
   document.getElementById('newMediumBtn').onclick = ()=>newGame('Medium');
   document.getElementById('newHardBtn').onclick = ()=>newGame('Hard');
   document.getElementById('newBtn').onclick = ()=>showOverlay('menu');
