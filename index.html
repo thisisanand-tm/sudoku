@@ -287,6 +287,10 @@ body{display:flex;justify-content:center}
     return { count, solution: first };
   }
 
+  function hasUniqueSolution(puzzle){
+    return solve(puzzle, 2).count === 1;
+  }
+
   function generateSolved(){
     const g = Array(81).fill(0);
     // seed diagonal boxes for variety
@@ -324,15 +328,18 @@ body{display:flex;justify-content:center}
         puzzle[i] = 0;
         const filled = puzzle.filter(Boolean).length;
         if(filled < cluesTarget){ puzzle[i] = old; continue; }
-        const res = solve(puzzle,2);
-        if(res.count !== 1) puzzle[i] = old;
+        if(!hasUniqueSolution(puzzle)) puzzle[i] = old;
       }
+      if(!hasUniqueSolution(puzzle)) continue;
+      const verified = solve(puzzle, 2);
+      if(verified.count !== 1 || !verified.solution) continue;
       const score = difficultyScore(puzzle);
       if(!best || (diff === 'Hard' ? score > best.score : score < best.score || best.clues > puzzle.filter(Boolean).length)){
-        best = { puzzle, solution, score, clues: puzzle.filter(Boolean).length };
+        best = { puzzle, solution: verified.solution, score, clues: puzzle.filter(Boolean).length };
       }
       if(diff==='Hard' && score >= cfg.minScore && puzzle.filter(Boolean).length <= cluesTarget+1) break;
     }
+    if(!best) return generatePuzzle(diff);
     return best;
   }
 
