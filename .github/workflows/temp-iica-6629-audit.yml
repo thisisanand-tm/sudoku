@@ -1,0 +1,60 @@
+name: Temp IICA 6629 audit
+
+on:
+  push:
+    branches:
+      - temp-iica-6629-audit
+    paths:
+      - '.github/workflows/temp-iica-6629-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Rebuild classifier
+        run: |
+          cat iica-audit/procure_part_*.b64 | base64 -d > iica-audit/procure_open_bank.py
+          mkdir -p data
+          python -m py_compile iica-audit/procure_open_bank.py
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check pandas pyarrow requests
+
+      - name: Run 6629 audit
+        id: audit
+        continue-on-error: true
+        run: python iica-audit/procure_open_bank.py
+
+      - name: Print exact audit counts
+        if: always()
+        run: |
+          echo '=== relevance_audit.json ==='
+          cat data/relevance_audit.json || true
+          echo '=== candidate_manifest.json ==='
+          cat data/candidate_manifest.json || true
+          echo '=== bank_manifest.json ==='
+          cat data/bank_manifest.json || true
+
+      - name: Upload categorized bank
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iica-6629-categorized
+          if-no-files-found: warn
+          path: |
+            data/relevance_audit.json
+            data/candidate_manifest.json
+            data/bank_manifest.json
+            data/candidates/
+            data/open_questions.js
+            data/corpus/
