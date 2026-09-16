@@ -1,0 +1,71 @@
+name: Build held derived review inventory
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/held-derived-inventory.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build held-candidate review files
+        run: |
+          python - <<'PY'
+          import json
+          from collections import Counter
+          from pathlib import Path
+
+          rows=[json.loads(x) for x in Path('audit/ADDITIONAL_VALIDATION_RESULTS.jsonl').read_text(encoding='utf-8').splitlines() if x.strip()]
+          held=[x for x in rows if x.get('status')=='HOLD_DERIVED_OR_NONEXTRACTIVE_ANSWER']
+          compact=[]
+          for x in held:
+              compact.append({
+                  'candidateId':x['candidateId'],
+                  'sourceKey':x['sourceKey'],
+                  'sourceItemId':x['sourceItemId'],
+                  'sourceTaskType':x.get('sourceTaskType',''),
+                  'rulebookKey':x.get('rulebookKey',''),
+                  'sourceDetail':x.get('sourceDetail',''),
+                  'difficulty':x.get('difficulty',''),
+                  'examCategory':x.get('examCategory',''),
+                  'question':x.get('question',''),
+                  'answer':x.get('answer',''),
+                  'contextEvidenceScore':x.get('contextEvidenceScore',0),
+                  'currentLawSource':x.get('currentLawSource',''),
+              })
+          Path('audit/HELD_DERIVED_INVENTORY.json').write_text(json.dumps({'count':len(compact),'items':compact},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+
+          task=Counter(x.get('sourceTaskType','') for x in held)
+          rule=Counter(x.get('rulebookKey','') for x in held)
+          src=Counter(x.get('sourceKey','') for x in held)
+          lines=['# Held derived/non-extractive candidate inventory','',f'Total held candidates: **{len(held)}**','','## By source']
+          for k,v in src.most_common(): lines.append(f'- {k}: {v}')
+          lines += ['', '## By task type']
+          for k,v in task.most_common(): lines.append(f'- {k or "(blank)"}: {v}')
+          lines += ['', '## By current rulebook']
+          for k,v in rule.most_common(): lines.append(f'- {k}: {v}')
+          Path('audit/HELD_DERIVED_INVENTORY.md').write_text('\n'.join(lines)+'\n',encoding='utf-8')
+          print(json.dumps({'held':len(held),'by_source':dict(src),'by_task':dict(task),'by_rulebook':dict(rule)},indent=2))
+          PY
+
+      - name: Commit inventory
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add audit/HELD_DERIVED_INVENTORY.json audit/HELD_DERIVED_INVENTORY.md
+          if git diff --cached --quiet; then
+            echo 'No changes'
+          else
+            git commit -m 'Build inventory for 69 held validation candidates'
+            git push origin HEAD:main
+          fi
