@@ -1,29 +1,35 @@
 {
-  "schemaVersion": 4,
-  "build": "V7-direct-only",
-  "generatedAt": "2026-09-16T06:35:00Z",
+  "schemaVersion": 5,
+  "build": "V8-validated-sourced",
+  "generatedAt": "2026-09-16T12:00:00Z",
+  "preexistingCount": 125,
+  "corpusCount": 125,
+  "bhashaActiveCount": 118,
+  "nptelImportedCount": 7,
+  "retiredAfterValidationCount": 13,
   "directRelevantSourceRows": 133,
   "duplicateDirectStemsRemoved": 2,
-  "preexistingCount": 131,
-  "corpusCount": 131,
-  "excludedFromMockCount": 0,
+  "nptelAssignmentQuestionsScreened": 20,
+  "nptelCandidateQuestionsCurated": 7,
+  "nptelExcludedAsDuplicateCount": 0,
+  "validationRequiredCount": 0,
+  "sourceQualityPassCount": 125,
+  "aiQuestionCount": 0,
   "categoryCounts": {
-    "Companies Law": 89,
-    "Securities Law": 28,
     "Basic Accountancy": 9,
-    "Corporate Governance": 5
+    "Companies Law": 80,
+    "Corporate Governance": 11,
+    "Securities Law": 25
   },
   "difficultyCounts": {
-    "S": 83,
-    "M": 44,
-    "H": 4
+    "H": 3,
+    "M": 42,
+    "S": 80
   },
-  "validationRequiredCount": 88,
-  "sourceQualityPassCount": 43,
-  "aiQuestionCount": 0,
-  "policy": "Only the 133 directly relevant IICA-mapped source rows are retained; two duplicate stems are collapsed, leaving 131 unique active questions. Supplementary and excluded rows are not shipped in this build.",
-  "correctedSourceDefectCount": 1,
-  "correctedSourceDefects": [
-    "BHASHA-BBL-c34090e7-097a-4f5f-90db-cfae0a97e820"
-  ]
+  "sourceCounts": {
+    "BHASHABENCH_FINANCE": 37,
+    "BHASHABENCH_LEGAL": 81,
+    "NPTEL_ETHICAL_CORPORATION": 7
+  },
+  "policy": "Source-only V8: all active Bhasha questions are either previously source-quality-passed or validated/corrected; 13 defective/obsolete questions are retired. Seven pre-existing NPTEL assignment MCQs are added in a separate CC BY-NC-SA data file after relevance/currentness review and deduplication. No AI-authored questions are included."
 }

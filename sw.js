@@ -1,5 +1,5 @@
-const CACHE='director-mock-v7-direct-only';
-const ASSETS=['./','index.html','styles.css','app.js','data/open_questions.js','data/questions.js','data/openbank-loader.js','data/bank_manifest.json','manifest.json','icons/icon-192.png','icons/icon-512.png','SOURCES.md','QUESTION_BANK_LICENSE.md','AUDIT_SUMMARY.md'];
+const CACHE='director-mock-v8-validated-sourced';
+const ASSETS=['./','index.html','styles.css','app.js','data/open_questions.js','data/nptel_questions.js','data/questions.js','data/openbank-loader.js','data/bank_manifest.json','data/retired_questions.json','manifest.json','icons/icon-192.png','icons/icon-512.png','SOURCES.md','QUESTION_BANK_LICENSE.md','AUDIT_SUMMARY.md'];
 self.addEventListener('install',event=>{
   self.skipWaiting();
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));

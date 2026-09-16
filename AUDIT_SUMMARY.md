@@ -1,17 +1,20 @@
-# V7 question-bank audit summary
+# V8 question-bank audit summary
 
-- Direct relevant source rows: 133
-- Duplicate stems removed: 2
-- Unique active questions: 131
-- Supplementary questions shipped: 0
-- Excluded questions shipped: 0
+- Bhasha active before validation: 131
+- Previously validation-required: 88
+- Validated as-is: 37
+- Corrected: 15
+- Rewritten for current law/clarity: 23
+- Retired: 13
+- Bhasha active after retirement: 118
+- NPTEL assignment questions screened: 20
+- NPTEL curated candidates encoded: 7
+- NPTEL imported after deduplication: 7
+- Total active sourced questions: 125
+- Active validation-required questions: 0
 - AI-authored questions: 0
-- Source-quality pass/corrected after dedupe: 43
-- Validation-required after dedupe: 88
 
-Category counts: {"Companies Law": 89, "Securities Law": 28, "Basic Accountancy": 9, "Corporate Governance": 5}
-Difficulty counts: {"S": 83, "M": 44, "H": 4}
+Category counts: {"Basic Accountancy": 9, "Companies Law": 80, "Corporate Governance": 11, "Securities Law": 25}
+Difficulty counts: {"H": 3, "M": 42, "S": 80}
 
-Validation-required means the item is directly relevant but its marked answer, numeric threshold, legal currency or source quality should be checked before treating it as authoritative.
-
-One source defect was corrected: the SEBI expansion was changed to “Securities and Exchange Board of India” using official SEBI wording. This is a factual source correction, not an AI-authored question.
+All 13 retired Bhasha rows remain preserved in `data/retired_questions.json` with retirement reasons. NPTEL content remains in a separate CC BY-NC-SA file.
