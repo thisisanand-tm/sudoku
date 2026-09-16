@@ -1,0 +1,85 @@
+name: Finalize V9 import
+
+on:
+  push:
+    branches:
+      - import-245-mcqs-2026-09-16
+    paths:
+      - data/source_qa_*.js
+      - data/source_qa_compact_loader.js
+      - data/questions.js
+      - index.html
+      - scripts/finalize_v9.py
+      - .github/workflows/finalize-v9-import.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: import-245-mcqs-2026-09-16
+
+      - name: Finalize V9 files
+        run: python scripts/finalize_v9.py
+
+      - name: Syntax check
+        run: |
+          node --check data/source_qa_compact_loader.js
+          node --check data/questions.js
+          for f in data/source_qa_*.js; do node --check "$f"; done
+          node --check app.js
+          node --check sw.js
+
+      - name: Validate 370-question bank
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const vm = require('vm');
+          const ctx = { window: {} };
+          vm.createContext(ctx);
+          const run = f => vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, { filename:f });
+          run('data/open_questions.js');
+          run('data/nptel_questions.js');
+          for (let i=1;i<=22;i++) run(`data/source_qa_${String(i).padStart(2,'0')}.js`);
+          run('data/source_qa_compact_loader.js');
+          run('data/questions.js');
+          const q = ctx.window.QUESTION_BANK;
+          if (!Array.isArray(q) || q.length !== 370) throw new Error(`Expected 370, got ${q?.length}`);
+          const ids = new Set(q.map(x=>x.id));
+          if (ids.size !== 370) throw new Error('Duplicate IDs');
+          const converted = q.filter(x=>x.originType === 'preexisting_qa_converted');
+          if (converted.length !== 245) throw new Error(`Expected 245 converted, got ${converted.length}`);
+          if (q.some(x=>x.aiGenerated)) throw new Error('AI-authored stem flag found');
+          for (const x of q) {
+            if (!Array.isArray(x.options) || x.options.length !== 4 || new Set(x.options).size !== 4) throw new Error(`Bad options ${x.id}`);
+            if (!Number.isInteger(x.answer) || x.answer < 0 || x.answer > 3) throw new Error(`Bad answer ${x.id}`);
+          }
+          const count = key => Object.fromEntries([...new Set(q.map(x=>x[key]))].map(v=>[v,q.filter(x=>x[key]===v).length]));
+          console.log(JSON.stringify({total:q.length, converted:converted.length, category:count('category'), difficulty:count('difficulty')},null,2));
+          NODE
+
+      - name: Static wiring check
+        run: |
+          grep -q 'data/source_qa_22.js' index.html
+          grep -q 'data/source_qa_compact_loader.js' index.html
+          grep -q 'director-mock-v9-source-qa-370' sw.js
+          grep -q '370 validated sourced questions' README.md
+          test ! -d import_payload
+          test ! -f scripts/import_245_to_v9.py
+
+      - name: Commit finalized V9
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No finalization changes to commit.'
+          else
+            git commit -m 'Finalize Director Mock India V9 370-question bank'
+            git push origin HEAD:import-245-mcqs-2026-09-16
+          fi
