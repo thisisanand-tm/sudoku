@@ -1,35 +1,38 @@
 {
-  "schemaVersion": 5,
-  "build": "V8-validated-sourced",
-  "generatedAt": "2026-09-16T12:00:00Z",
-  "preexistingCount": 125,
-  "corpusCount": 125,
+  "schemaVersion": 6,
+  "build": "V9-validated-source-qa-370",
+  "generatedAt": "2026-09-16T12:30:00Z",
+  "activeQuestionCount": 370,
+  "preexistingCount": 370,
+  "corpusCount": 370,
+  "sourceOriginalMcqCount": 125,
+  "sourceQaConvertedCount": 245,
   "bhashaActiveCount": 118,
   "nptelImportedCount": 7,
+  "indianLegalQaConvertedCount": 242,
+  "rmaniConvertedCount": 3,
   "retiredAfterValidationCount": 13,
-  "directRelevantSourceRows": 133,
-  "duplicateDirectStemsRemoved": 2,
-  "nptelAssignmentQuestionsScreened": 20,
-  "nptelCandidateQuestionsCurated": 7,
-  "nptelExcludedAsDuplicateCount": 0,
   "validationRequiredCount": 0,
-  "sourceQualityPassCount": 125,
+  "sourceQualityPassCount": 370,
   "aiQuestionCount": 0,
+  "assistantGeneratedDistractorQuestionCount": 245,
   "categoryCounts": {
-    "Basic Accountancy": 9,
-    "Companies Law": 80,
-    "Corporate Governance": 11,
-    "Securities Law": 25
+    "Basic Accountancy": 47,
+    "Companies Law": 188,
+    "Corporate Governance": 61,
+    "Securities Law": 74
   },
   "difficultyCounts": {
-    "H": 3,
-    "M": 42,
-    "S": 80
+    "H": 7,
+    "M": 102,
+    "S": 261
   },
   "sourceCounts": {
     "BHASHABENCH_FINANCE": 37,
     "BHASHABENCH_LEGAL": 81,
-    "NPTEL_ETHICAL_CORPORATION": 7
+    "NPTEL_ETHICAL_CORPORATION": 7,
+    "INDIANLEGAL_QA": 242,
+    "RMANI_INDIAN_LEGAL": 3
   },
-  "policy": "Source-only V8: all active Bhasha questions are either previously source-quality-passed or validated/corrected; 13 defective/obsolete questions are retired. Seven pre-existing NPTEL assignment MCQs are added in a separate CC BY-NC-SA data file after relevance/currentness review and deduplication. No AI-authored questions are included."
+  "policy": "V9 contains 125 validated source-original/corrected MCQs plus 245 current-law-validated open-licensed source Q&A items converted to MCQ. No active question stem is AI-authored. The 245 converted items use assistant-generated distractors and are explicitly labelled as such."
 }

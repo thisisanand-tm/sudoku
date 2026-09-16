@@ -1,25 +1,21 @@
-# Director Mock India — V8 Validated Source Bank
+# Director Mock India — V9 Validated Source Bank
 
 Static, mobile-first PWA for practising the Indian Independent Director proficiency-assessment format.
 
 ## Active question bank
 
-- **125 pre-existing sourced questions are active.**
-- BhashaBench active after validation/retirement: **118**.
-- NPTEL pre-existing assignment questions imported after screening/deduplication: **7**.
-- Retired after current-law/quality validation: **13**.
-- Categories: Basic Accountancy: 9, Companies Law: 80, Corporate Governance: 11, Securities Law: 25.
-- Difficulty: H: 3, M: 42, S: 80.
+- **370 validated sourced questions are active.**
+- Source-original/corrected MCQs: **125** (118 BhashaBench + 7 NPTEL).
+- Validated open-source Q&A converted to MCQ: **245** (242 IndianLegal-QA + 3 RMani1).
+- The converted questions preserve the validated source proposition; their distractors were created for this tool and are labelled `assistant-generated-distractors`.
+- Categories: Basic Accountancy: 47, Companies Law: 188, Corporate Governance: 61, Securities Law: 74.
+- Difficulty: H: 7, M: 102, S: 261.
 - Validation-required active questions: **0**.
-- AI-authored question count: **0**.
+- AI-authored question stems: **0**.
 
 ## Validation status
 
-The 88 questions previously flagged for validation were individually reviewed. The 37 valid-as-is items were cleared, 15 factual/reference defects were corrected, 23 useful items were rewritten for current law/clarity, and 13 obsolete/ambiguous items were retired from active sampling. Retired source rows are preserved in `data/retired_questions.json`.
-
-## NPTEL source addition
-
-Seven pre-existing questions from NPTEL/IIT Kharagpur's *The Ethical Corporation* assignments were added after direct IICA-domain relevance, currentness and duplicate screening. NPTEL question text is kept in `data/nptel_questions.js` because it carries **CC BY-NC-SA** terms and must remain licence-distinct from the MIT application code and the CC BY 4.0 BhashaBench data.
+The 245 added questions come from a 622-item screened source-Q&A pool. Each retained item was classified KEEP or REWRITE, checked for IICA relevance/current-law suitability, then converted into a four-option MCQ. The 377 rejected candidates remain outside the active bank.
 
 ## Mock format
 
@@ -32,4 +28,4 @@ Seven pre-existing questions from NPTEL/IIT Kharagpur's *The Ethical Corporation
 
 ## Important
 
-This is an unofficial educational preparation tool and is not affiliated with IICA, MCA, SEBI or NPTEL. Legal/regulatory questions should still be rechecked when laws or regulations change.
+This is an unofficial educational preparation tool and is not affiliated with IICA, MCA, SEBI or NPTEL. Regulations can change; the active bank was reviewed on 16 September 2026.

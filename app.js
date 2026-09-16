@@ -215,7 +215,7 @@ function bottomNav(active = 'home') {
 }
 
 function footerNote() {
-  return `<div class="footer-note">Unofficial educational preparation tool. Not affiliated with or endorsed by IICA, MCA or SEBI. The active mock bank uses only pre-existing openly licensed questions; no AI-authored question stems are served. Pre-existing QA items converted to MCQ use deterministic, non-AI distractors. Every item displays provenance, licence and S/M/H difficulty. Some source-marked answers and current-law thresholds remain flagged for validation. No IICA live/proctored exam questions are reproduced. Regulations can change. Build review date ${escapeHtml(EXAM_CONFIG.legalReviewDate)}.</div>`;
+  return `<div class="footer-note">Unofficial educational preparation tool. Not affiliated with or endorsed by IICA, MCA or SEBI. The active mock bank uses openly licensed sourced material; no AI-authored question stems are served. Source-QA items converted to MCQ use assistant-generated distractors and are labelled accordingly. Every item displays provenance, licence and S/M/H difficulty. Active items were reviewed for current-law suitability as of the build review date. No IICA live/proctored exam questions are reproduced. Regulations can change. Build review date ${escapeHtml(EXAM_CONFIG.legalReviewDate)}.</div>`;
 }
 
 function bindNavigation() {
