@@ -1,0 +1,48 @@
+name: Build source review pack
+
+on:
+  push:
+    branches:
+      - source-review-pack-2026-09-16
+    paths:
+      - .github/workflows/build-source-review-pack.yml
+      - scripts/build_source_review_pack.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: source-review-pack-2026-09-16
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade requests pypdf
+
+      - name: Build source-only review pack
+        run: python scripts/build_source_review_pack.py
+
+      - name: Verify no AI questions
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          rows=list(csv.DictReader(open('review_pack/review_questions.csv',encoding='utf-8-sig')))
+          assert rows, 'No review questions produced'
+          assert all(r['ai_generated']=='NO' for r in rows)
+          summary=json.load(open('review_pack/summary.json'))
+          assert summary['ai_generated_count']==0
+          print(json.dumps(summary,indent=2))
+          PY
+
+      - name: Upload review pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: iica-source-review-pack
+          path: review_pack/
+          if-no-files-found: error
+          retention-days: 30
