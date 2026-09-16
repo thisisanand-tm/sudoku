@@ -18,3 +18,7 @@ Do not represent the NPTEL question text as MIT-licensed or CC BY 4.0 material.
 ## RMani1 converted rows
 The source-QA shards include 3 source propositions from the RMani1 Indian Legal Dataset under **MIT**, converted to MCQ form after validation.
 
+
+## Additional source licences
+- IndiaFinBench: CC BY 4.0.
+- Indian Regulatory BFSI Benchmark v1: CC BY-SA 4.0; adapted MCQ conversions are distributed subject to the source ShareAlike terms.

@@ -1,38 +1,40 @@
 {
-  "schemaVersion": 6,
-  "build": "V9-validated-source-qa-370",
-  "generatedAt": "2026-09-16T12:30:00Z",
-  "activeQuestionCount": 370,
-  "preexistingCount": 370,
-  "corpusCount": 370,
+  "schemaVersion": 7,
+  "build": "V12-current-sebi-validated-397",
+  "generatedAt": "2026-09-16T00:00:00Z",
+  "activeQuestionCount": 397,
+  "preexistingCount": 397,
+  "corpusCount": 397,
   "sourceOriginalMcqCount": 125,
-  "sourceQaConvertedCount": 245,
+  "sourceQaConvertedCount": 272,
+  "additionalPrimaryValidatedCount": 27,
   "bhashaActiveCount": 118,
   "nptelImportedCount": 7,
   "indianLegalQaConvertedCount": 242,
   "rmaniConvertedCount": 3,
   "retiredAfterValidationCount": 13,
   "validationRequiredCount": 0,
-  "sourceQualityPassCount": 370,
+  "sourceQualityPassCount": 397,
   "aiQuestionCount": 0,
-  "assistantGeneratedDistractorQuestionCount": 245,
+  "assistantGeneratedDistractorQuestionCount": 272,
   "categoryCounts": {
     "Basic Accountancy": 47,
     "Companies Law": 188,
-    "Corporate Governance": 61,
-    "Securities Law": 74
+    "Corporate Governance": 67,
+    "Securities Law": 95
   },
   "difficultyCounts": {
-    "H": 7,
-    "M": 102,
-    "S": 261
+    "H": 10,
+    "M": 109,
+    "S": 278
   },
   "sourceCounts": {
     "BHASHABENCH_FINANCE": 37,
     "BHASHABENCH_LEGAL": 81,
     "NPTEL_ETHICAL_CORPORATION": 7,
     "INDIANLEGAL_QA": 242,
-    "RMANI_INDIAN_LEGAL": 3
+    "RMANI_INDIAN_LEGAL": 3,
+    "INDIAFINBENCH": 27
   },
-  "policy": "V9 contains 125 validated source-original/corrected MCQs plus 245 current-law-validated open-licensed source Q&A items converted to MCQ. No active question stem is AI-authored. The 245 converted items use assistant-generated distractors and are explicitly labelled as such."
+  "policy": "V12 contains the prior 370 validated sourced questions plus 27 additional open-licensed source Q&A items revalidated against current SEBI consolidated primary sources on 16 September 2026 and converted to MCQ. No active question stem is AI-authored; converted items use assistant-generated distractors and are explicitly labelled as such."
 }

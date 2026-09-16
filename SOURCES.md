@@ -20,3 +20,13 @@
 
 ## Excluded sources
 Public coaching/test-prep pages and datasets without a clear reusable licence are not copied into the active bank. No AI/synthetic question stems are included in V9.
+
+## IndiaFinBench — additional validated conversions
+- https://github.com/Rajveer-code/IndiaFinBench
+- Licence: CC BY 4.0
+- Only items revalidated against current SEBI consolidated primary sources are loaded into the active bank.
+
+## Indian Regulatory BFSI Benchmark v1 — additional validated conversions
+- https://github.com/uditjainstjis/indian-regulatory-bfsi-benchmark
+- Licence: CC BY-SA 4.0
+- ShareAlike applies to adapted benchmark-derived items. Only current-SEBI-validated items are active.

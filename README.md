@@ -4,7 +4,7 @@ Static, mobile-first PWA for practising the Indian Independent Director proficie
 
 ## Active question bank
 
-- **370 validated sourced questions are active.**
+- **397 validated sourced questions are active.**
 - Source-original/corrected MCQs: **125** (118 BhashaBench + 7 NPTEL).
 - Validated open-source Q&A converted to MCQ: **245** (242 IndianLegal-QA + 3 RMani1).
 - The converted questions preserve the validated source proposition; their distractors were created for this tool and are labelled `assistant-generated-distractors`.
@@ -38,3 +38,7 @@ The home dashboard includes a responsive **More Practice Questions** section lin
 
 The PWA explicitly checks for a new service worker on load, when the browser tab becomes visible/focused, and periodically while open. When a newer deployed worker takes control, an already-controlled page reloads itself once automatically. First-time service-worker installation does not force an unnecessary reload. Navigations use a network-first strategy with an offline cache fallback so ordinary refreshes prefer the latest deployed page when online.
 
+
+## Additional current-SEBI validation
+
+On 16 September 2026, 27 additional open-licensed source Q&A items were promoted only after matching their source proposition to current consolidated SEBI primary-source text. Derived/calculated and unmapped items were not auto-promoted.
