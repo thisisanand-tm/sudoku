@@ -1,4 +1,4 @@
-const CACHE='director-mock-v12-sebi-397';
+const CACHE='director-mock-v12-sebi-464';
 const ASSETS=['./','index.html','styles.css','app.js','pwa-update.js','data/open_questions.js','data/nptel_questions.js','data/source_qa_compact_loader.js','data/source_qa_22.js','data/source_qa_21.js','data/source_qa_20.js','data/source_qa_19.js','data/source_qa_18.js','data/source_qa_17.js','data/source_qa_16.js','data/source_qa_15.js','data/source_qa_14.js','data/source_qa_13.js','data/source_qa_12.js','data/source_qa_11.js','data/source_qa_10.js','data/source_qa_09.js','data/source_qa_08.js','data/source_qa_07.js','data/source_qa_06.js','data/source_qa_05.js','data/source_qa_04.js','data/source_qa_03.js','data/source_qa_02.js','data/source_qa_01.js','data/additional_validated_questions.js','data/questions.js','data/practice_resources.js','data/openbank-loader.js','data/bank_manifest.json','data/retired_questions.json','manifest.json','icons/icon-192.png','icons/icon-512.png','SOURCES.md','QUESTION_BANK_LICENSE.md','AUDIT_SUMMARY.md'];
 self.addEventListener('install',event=>{
   self.skipWaiting();

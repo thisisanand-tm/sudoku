@@ -1,32 +1,32 @@
 {
   "schemaVersion": 7,
-  "build": "V12-current-sebi-validated-397",
+  "build": "V12-current-sebi-validated-464",
   "generatedAt": "2026-09-16T00:00:00Z",
-  "activeQuestionCount": 397,
-  "preexistingCount": 397,
-  "corpusCount": 397,
+  "activeQuestionCount": 464,
+  "preexistingCount": 464,
+  "corpusCount": 464,
   "sourceOriginalMcqCount": 125,
-  "sourceQaConvertedCount": 272,
-  "additionalPrimaryValidatedCount": 27,
+  "sourceQaConvertedCount": 339,
+  "additionalPrimaryValidatedCount": 94,
   "bhashaActiveCount": 118,
   "nptelImportedCount": 7,
   "indianLegalQaConvertedCount": 242,
   "rmaniConvertedCount": 3,
   "retiredAfterValidationCount": 13,
   "validationRequiredCount": 0,
-  "sourceQualityPassCount": 397,
+  "sourceQualityPassCount": 464,
   "aiQuestionCount": 0,
-  "assistantGeneratedDistractorQuestionCount": 272,
+  "assistantGeneratedDistractorQuestionCount": 339,
   "categoryCounts": {
     "Basic Accountancy": 47,
     "Companies Law": 188,
-    "Corporate Governance": 67,
-    "Securities Law": 95
+    "Corporate Governance": 77,
+    "Securities Law": 152
   },
   "difficultyCounts": {
-    "H": 10,
-    "M": 109,
-    "S": 278
+    "H": 20,
+    "M": 145,
+    "S": 299
   },
   "sourceCounts": {
     "BHASHABENCH_FINANCE": 37,
@@ -34,7 +34,7 @@
     "NPTEL_ETHICAL_CORPORATION": 7,
     "INDIANLEGAL_QA": 242,
     "RMANI_INDIAN_LEGAL": 3,
-    "INDIAFINBENCH": 27
+    "INDIAFINBENCH": 94
   },
-  "policy": "V12 contains the prior 370 validated sourced questions plus 27 additional open-licensed source Q&A items revalidated against current SEBI consolidated primary sources on 16 September 2026 and converted to MCQ. No active question stem is AI-authored; converted items use assistant-generated distractors and are explicitly labelled as such."
+  "policy": "V12 contains the prior 370 validated sourced questions plus 94 additional open-licensed source Q&A items revalidated against current SEBI consolidated primary sources on 16 September 2026 and converted to MCQ. No active question stem is AI-authored; converted items use assistant-generated distractors and are explicitly labelled as such."
 }

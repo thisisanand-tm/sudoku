@@ -41,4 +41,8 @@ The PWA explicitly checks for a new service worker on load, when the browser tab
 
 ## Additional current-SEBI validation
 
-On 16 September 2026, 27 additional open-licensed source Q&A items were promoted only after matching their source proposition to current consolidated SEBI primary-source text. Derived/calculated and unmapped items were not auto-promoted.
+On 16 September 2026, 94 additional open-licensed source Q&A items were promoted from the direct-review set after current-SEBI source validation and a second-stage reasoning review. Derived/calculated and unmapped items were not auto-promoted.
+
+### Direct-review gate
+
+The 160-item direct-review set is complete: 94 promoted, with current-source mismatches/unmapped items excluded and two reasoning-stage items withheld. The active bank now contains 464 validated sourced questions.
