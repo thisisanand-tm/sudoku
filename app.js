@@ -277,7 +277,7 @@ async function createMock() {
   if (window.OPEN_BANK_READY) await window.OPEN_BANK_READY;
   const picked = [];
   for (const [category, count] of Object.entries(EXAM_CONFIG.categoryTargets)) {
-    const pool = shuffle(poolByCategory(category).filter(q => !q.aiGenerated && String(q.originType || '').startsWith('preexisting_')));
+    const pool = shuffle(poolByCategory(category).filter(q => !q.aiGenerated && (String(q.originType || '').startsWith('preexisting_') || q.originType === 'source_qa_converted_mcq')));
     if (pool.length < count) throw new Error(`Not enough direct-relevance questions in ${category}: need ${count}, have ${pool.length}.`);
     picked.push(...pool.slice(0, count));
   }
@@ -426,6 +426,26 @@ function renderSubjectRows(history) {
   </div>`).join('');
 }
 
+
+function practiceResourcesMarkup() {
+  const resources = Array.isArray(window.PRACTICE_RESOURCES) ? window.PRACTICE_RESOURCES : [];
+  if (!resources.length) return '';
+  return `<section class="card practice-links-card">
+    <div class="practice-links-heading">
+      <div><h2>${icon('book', 22)} More Practice Questions</h2><p>Use these external resources when you want additional questions beyond this tool's 370-question bank.</p></div>
+    </div>
+    <div class="practice-resource-grid">
+      ${resources.map(resource => `<a class="practice-resource" href="${escapeHtml(resource.url)}" target="_blank" rel="noopener noreferrer">
+        <div class="practice-resource-top"><span class="resource-access">${escapeHtml(resource.access)}</span>${icon('arrow', 18)}</div>
+        <strong>${escapeHtml(resource.title)}</strong>
+        <span class="resource-provider">${escapeHtml(resource.provider)}</span>
+        <small>${escapeHtml(resource.note)}</small>
+      </a>`).join('')}
+    </div>
+    <div class="practice-resource-note">${icon('info', 17)} <span>External sites are independent of Director Mock India. Availability, pricing and question accuracy can change. For current rules and the official familiarisation mock, prioritize IICA.</span></div>
+  </section>`;
+}
+
 function renderHome() {
   stopTimer();
   currentView = 'home';
@@ -495,6 +515,7 @@ function renderHome() {
             ${icon('arrow', 22)}
           </button>
         </section>
+        ${practiceResourcesMarkup()}
       </div>
       ${footerNote()}
     </main>

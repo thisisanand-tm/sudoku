@@ -29,3 +29,8 @@ The 245 added questions come from a 622-item screened source-Q&A pool. Each reta
 ## Important
 
 This is an unofficial educational preparation tool and is not affiliated with IICA, MCA, SEBI or NPTEL. Regulations can change; the active bank was reviewed on 16 September 2026.
+
+## More practice resources
+
+The home dashboard includes a responsive **More Practice Questions** section linking to the official IICA self-assessment/mock-test area plus selected free/public and paid third-party question banks. External resources are linked for additional practice only; their content is not copied into this repository and may have separate access, copyright and currentness conditions.
+
