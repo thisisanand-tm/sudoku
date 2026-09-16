@@ -34,3 +34,7 @@ This is an unofficial educational preparation tool and is not affiliated with II
 
 The home dashboard includes a responsive **More Practice Questions** section linking to the official IICA self-assessment/mock-test area plus selected free/public and paid third-party question banks. External resources are linked for additional practice only; their content is not copied into this repository and may have separate access, copyright and currentness conditions.
 
+## Automatic updates
+
+The PWA explicitly checks for a new service worker on load, when the browser tab becomes visible/focused, and periodically while open. When a newer deployed worker takes control, an already-controlled page reloads itself once automatically. First-time service-worker installation does not force an unnecessary reload. Navigations use a network-first strategy with an offline cache fallback so ordinary refreshes prefer the latest deployed page when online.
+
