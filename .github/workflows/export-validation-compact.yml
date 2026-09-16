@@ -1,0 +1,41 @@
+name: Export validation compact
+
+on:
+  push:
+    branches:
+      - audit-question-validation-2026-09-16
+    paths:
+      - .github/workflows/export-validation-compact.yml
+
+permissions:
+  contents: write
+
+jobs:
+  compact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit-question-validation-2026-09-16
+      - name: Build compact audit list
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          qs=json.loads(Path('audit/validation_questions.json').read_text(encoding='utf-8'))
+          lines=['n\tid\tcategory\tdifficulty\tquestion\toptions\tsource_answer\taudit_reasons\tquality_issues']
+          clean=lambda s: str(s or '').replace('\t',' ').replace('\r',' ').replace('\n',' ⏎ ')
+          for i,q in enumerate(qs,1):
+              opts=' || '.join(f'{j}:{clean(o)}' for j,o in enumerate(q.get('options',[])))
+              a=q.get('answer')
+              ans=q.get('options',[str(a)])[a] if isinstance(a,int) and a < len(q.get('options',[])) else a
+              lines.append('\t'.join(map(clean,[i,q['id'],q.get('category'),q.get('difficulty'),q.get('question'),opts,ans,q.get('auditReasons'),q.get('qualityIssues')])))
+          Path('audit/validation_compact.tsv').write_text('\n'.join(lines)+'\n',encoding='utf-8')
+          PY
+      - name: Commit compact export
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add audit/validation_compact.tsv
+          git commit -m "Add compact validation audit export" || exit 0
+          git push origin HEAD:audit-question-validation-2026-09-16
