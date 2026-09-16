@@ -1,0 +1,83 @@
+name: Promote second-stage direct-review questions
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/promote_second_stage_direct.py
+      - .github/workflows/promote-second-stage-direct.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - name: Promote second-stage passes
+        run: python scripts/promote_second_stage_direct.py
+      - name: Syntax checks
+        run: |
+          node --check data/additional_validated_questions.js
+          node --check data/questions.js
+          node --check app.js
+          node --check sw.js
+      - name: Validate final direct-review bank
+        run: |
+          node <<'NODE'
+          const fs=require('fs'),vm=require('vm');
+          const ctx={window:{}}; vm.createContext(ctx);
+          const run=f=>vm.runInContext(fs.readFileSync(f,'utf8'),ctx,{filename:f});
+          run('data/open_questions.js'); run('data/nptel_questions.js');
+          for(let i=1;i<=22;i++) run(`data/source_qa_${String(i).padStart(2,'0')}.js`);
+          run('data/source_qa_compact_loader.js');
+          run('data/additional_validated_questions.js'); run('data/questions.js');
+          const q=ctx.window.QUESTION_BANK, add=ctx.window.ADDITIONAL_VALIDATED_QUESTION_BANK, m=ctx.window.OPEN_BANK_MANIFEST;
+          if(q.length!==464) throw new Error(`Expected 464 active questions, got ${q.length}`);
+          if(add.length!==94) throw new Error(`Expected 94 additional direct-review questions, got ${add.length}`);
+          if(m.activeQuestionCount!==464||m.additionalPrimaryValidatedCount!==94) throw new Error('Manifest counts wrong');
+          if(new Set(q.map(x=>x.id)).size!==q.length) throw new Error('Duplicate IDs');
+          const stems=q.map(x=>x.question.trim().toLowerCase().replace(/\s+/g,' '));
+          if(new Set(stems).size!==stems.length) throw new Error('Duplicate stems');
+          if(q.some(x=>x.aiGenerated)) throw new Error('AI-authored stem flag found');
+          for(const x of q){
+            if(!Array.isArray(x.options)||x.options.length!==4||new Set(x.options).size!==4) throw new Error(`Bad options ${x.id}`);
+            if(!Number.isInteger(x.answer)||x.answer<0||x.answer>3) throw new Error(`Bad answer ${x.id}`);
+          }
+          for(const id of ['CAND-INDIAFINBENCH-0348','CAND-INDIAFINBENCH-0391']){
+            if(add.some(x=>x.candidateId===id)) throw new Error(`Excluded candidate promoted: ${id}`);
+          }
+          console.log(JSON.stringify({active:q.length,additional:add.length,build:m.build},null,2));
+          NODE
+      - name: Validate audit result statuses and wiring
+        run: |
+          python - <<'PY'
+          import json
+          from collections import Counter
+          from pathlib import Path
+          rows=[json.loads(x) for x in Path('audit/ADDITIONAL_VALIDATION_RESULTS.jsonl').read_text(encoding='utf-8').splitlines() if x.strip()]
+          c=Counter(x['status'] for x in rows)
+          assert c['PASS_PRIMARY_SOURCE_EXTRACTIVE']==27,c
+          assert c['PASS_SECOND_STAGE_REASONING_REVIEW']==67,c
+          assert c['HOLD_SECOND_STAGE_LEGAL_AMBIGUITY']==1,c
+          assert c['REJECT_SECOND_STAGE_REASONING_ERROR']==1,c
+          assert c['REJECT_CURRENT_TEXT_NOT_EVIDENCED']==30,c
+          assert c['REJECT_NO_PRIMARY_SOURCE_MAPPING']==34,c
+          m=json.load(open('data/bank_manifest.json'))
+          assert m['activeQuestionCount']==464
+          assert m['additionalPrimaryValidatedCount']==94
+          assert m['aiQuestionCount']==0
+          assert 'data/additional_validated_questions.js' in Path('index.html').read_text()
+          assert 'data/additional_validated_questions.js' in Path('sw.js').read_text()
+          assert 'DIRECT_REVIEW_FINAL_REPORT' not in Path('audit/DIRECT_REVIEW_FINAL_REPORT.md').read_text()  # file is rendered prose, not a self-reference
+          print(dict(c))
+          PY
+      - name: Commit completed direct-review bank
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/additional_validated_questions.js data/questions.js data/bank_manifest.json index.html sw.js README.md audit/ADDITIONAL_VALIDATION_RESULTS.jsonl audit/DIRECT_REVIEW_FINAL_REPORT.md
+          if git diff --cached --quiet; then echo 'No changes'; else git commit -m 'Complete 160-item direct source review'; git push origin HEAD:main; fi
