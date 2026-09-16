@@ -1,0 +1,81 @@
+name: Deploy Director Mock V7
+
+on:
+  push:
+    branches:
+      - deploy-director-v7
+    paths:
+      - '.github/workflows/deploy-director-v7.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Rebuild and verify tested V7 archive
+        run: |
+          cat \
+            deploy/v7/part_00.b64 \
+            deploy/v7/rem_00.b64 \
+            deploy/v7/rem_01.b64 \
+            deploy/v7/rem_02.b64 \
+            deploy/v7/rem_03.b64 \
+            > /tmp/director-v7.zip.b64
+          test "$(wc -c < /tmp/director-v7.zip.b64)" = "78508"
+          base64 -d /tmp/director-v7.zip.b64 > /tmp/director-v7.zip
+          echo "674cc68ec05a56f1d9b304e903314b888d3351d8542089a7ab187ce7f4bd23c0  /tmp/director-v7.zip" | sha256sum -c -
+          unzip -t /tmp/director-v7.zip
+
+      - name: Replace repository tree with Director Mock V7
+        run: |
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          unzip -q /tmp/director-v7.zip -d .
+          test -f .nojekyll
+          test -f index.html
+          test -f app.js
+          test -f data/open_questions.js
+          test -f data/bank_manifest.json
+          test ! -e deploy
+          test ! -e tools
+          test ! -e data/candidates
+          test ! -e data/corpus
+
+      - name: Validate application and direct-only bank
+        run: |
+          node --check app.js
+          node --check data/open_questions.js
+          node --check data/questions.js
+          node --check data/openbank-loader.js
+          node --check sw.js
+          node - <<'NODE'
+          const fs = require('fs');
+          const vm = require('vm');
+          const ctx = { window: {} };
+          vm.createContext(ctx);
+          for (const f of ['data/open_questions.js','data/questions.js','data/openbank-loader.js']) {
+            vm.runInContext(fs.readFileSync(f, 'utf8'), ctx, { filename: f });
+          }
+          const q = ctx.window.QUESTION_BANK;
+          if (!Array.isArray(q) || q.length !== 131) throw new Error(`Expected 131 unique active questions, got ${q?.length}`);
+          if (q.some(x => x.aiGenerated)) throw new Error('AI-authored question found');
+          const cats = q.reduce((a,x)=>((a[x.category]=(a[x.category]||0)+1),a),{});
+          const expected = {'Companies Law':89,'Securities Law':28,'Basic Accountancy':9,'Corporate Governance':5};
+          for (const [k,v] of Object.entries(expected)) if (cats[k] !== v) throw new Error(`${k}: expected ${v}, got ${cats[k]}`);
+          const validationRequired = q.filter(x => x.validationRequired).length;
+          if (validationRequired !== 88) throw new Error(`Expected 88 validation-required items, got ${validationRequired}`);
+          console.log(JSON.stringify({count:q.length,categories:cats,validationRequired,ai:0}, null, 2));
+          NODE
+
+      - name: Commit verified build and push to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Deploy Director Mock India V7 direct-IICA bank"
+          git push origin HEAD:main
