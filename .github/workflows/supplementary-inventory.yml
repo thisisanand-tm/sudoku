@@ -1,0 +1,78 @@
+name: Build supplementary source inventory
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/supplementary-inventory.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - name: Build supplementary inventory
+        run: |
+          python - <<'PY'
+          import json
+          from collections import Counter
+          from pathlib import Path
+          rows=[json.loads(x) for x in Path('data/candidates/additional_source_candidates.jsonl').read_text(encoding='utf-8').splitlines() if x.strip()]
+          s=[x for x in rows if x.get('disposition')=='SUPPLEMENTARY_REVIEW']
+          # Mirrors the named current rulebooks already validated in the direct-review pipeline.
+          maps={
+            'CRA_1999':['credit rating agencies'],
+            'SAST_2011':['substantial acquisition of shares and takeovers'],
+            'ICDR_2018':['issue of capital and disclosure requirements'],
+            'LODR_2015':['listing obligations and disclosure requirements'],
+            'AIF_2012':['alternative investment funds'],
+            'INVIT_2014':['infrastructure investment trusts'],
+            'PIT_2015':['prohibition of insider trading'],
+            'REIT_2014':['real estate investment trusts'],
+            'MUNICIPAL_2015':['issue and listing of municipal debt securities'],
+            'RTI_STA_2025':['registrars to an issue and share transfer agents'],
+            'SECC_2018':['stock exchanges and clearing corporations'],
+            'DP_2018':['depositories and participants'],
+            'MERCHANT_1992':['merchant bankers'],
+            'MF_2026':['mutual funds'],
+          }
+          def rule(x):
+            low=x.get('sourceDetail','').lower()
+            for k,terms in maps.items():
+              if any(t in low for t in terms): return k
+            return None
+          compact=[]
+          for x in s:
+            r=rule(x)
+            compact.append({
+              'candidateId':x['candidateId'],'sourceKey':x['sourceKey'],'sourceItemId':x['sourceItemId'],
+              'sourceTaskType':x.get('sourceTaskType',''),'rulebookKey':r,'sourceDetail':x.get('sourceDetail',''),
+              'difficulty':x.get('difficulty',''),'examCategory':x.get('examCategory',''),
+              'question':x.get('question',''),'answer':x.get('answer',''),'sourceUrl':x.get('sourceUrl',''),'license':x.get('license','')
+            })
+          Path('audit/SUPPLEMENTARY_INVENTORY.jsonl').write_text(''.join(json.dumps(x,ensure_ascii=False,separators=(',',':'))+'\n' for x in compact),encoding='utf-8')
+          mapped=[x for x in compact if x['rulebookKey']]
+          src=Counter(x['sourceKey'] for x in compact); task=Counter(x['sourceTaskType'] for x in compact); rules=Counter(x['rulebookKey'] or 'UNMAPPED' for x in compact)
+          mappedtask=Counter(x['sourceTaskType'] for x in mapped)
+          lines=['# Supplementary sourced-candidate inventory','',f'Total supplementary candidates: **{len(compact)}**',f'Mapped to an already-current-validated SEBI rulebook: **{len(mapped)}**','','## By source']
+          for k,v in src.most_common(): lines.append(f'- {k}: {v}')
+          lines += ['', '## By task type']
+          for k,v in task.most_common(): lines.append(f'- {k}: {v}')
+          lines += ['', '## By current rulebook mapping']
+          for k,v in rules.most_common(): lines.append(f'- {k}: {v}')
+          lines += ['', '## Mapped candidates by task type']
+          for k,v in mappedtask.most_common(): lines.append(f'- {k}: {v}')
+          Path('audit/SUPPLEMENTARY_INVENTORY.md').write_text('\n'.join(lines)+'\n',encoding='utf-8')
+          print(json.dumps({'total':len(compact),'mapped':len(mapped),'rules':dict(rules),'mappedTasks':dict(mappedtask)},indent=2))
+          PY
+      - name: Commit inventory
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add audit/SUPPLEMENTARY_INVENTORY.jsonl audit/SUPPLEMENTARY_INVENTORY.md
+          if git diff --cached --quiet; then echo 'No changes'; else git commit -m 'Build supplementary source candidate inventory'; git push origin HEAD:main; fi
