@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-16T15:14:16.014170Z",
+  "mode": "SOURCE_ONLY_CANDIDATE_PACK",
+  "activeBankModified": false,
+  "activeBankExpectedCount": 370,
+  "activeQuestionTextsObservedForDedup": 369,
+  "sources": {
+    "INDIAFINBENCH": {
+      "url": "https://raw.githubusercontent.com/Rajveer-code/IndiaFinBench/main/data/benchmark/indiafinbench_v1.csv",
+      "project": "https://github.com/Rajveer-code/IndiaFinBench",
+      "license": "CC BY 4.0",
+      "attribution": "IndiaFinBench — Rajveer Singh Pall"
+    },
+    "INDIAN_REGULATORY_BFSI": {
+      "url": "https://raw.githubusercontent.com/uditjainstjis/indian-regulatory-bfsi-benchmark/main/questions.jsonl",
+      "project": "https://github.com/uditjainstjis/indian-regulatory-bfsi-benchmark",
+      "license": "CC BY-SA 4.0",
+      "attribution": "Indian Regulatory BFSI Benchmark v1 — Udit Jain"
+    }
+  },
+  "totalExtracted": 466,
+  "reviewCandidateCount": 368,
+  "excludedOrDuplicateCount": 98,
+  "candidateCountsBySource": {
+    "INDIAFINBENCH": 338,
+    "INDIAN_REGULATORY_BFSI": 30
+  },
+  "extractedCountsBySource": {
+    "INDIAFINBENCH": 406,
+    "INDIAN_REGULATORY_BFSI": 60
+  },
+  "candidateCountsByDisposition": {
+    "DIRECT_REVIEW": 160,
+    "SUPPLEMENTARY_REVIEW": 208
+  },
+  "candidateCountsByCategory": {
+    "Corporate Governance": 31,
+    "Securities Law": 337
+  },
+  "candidateCountsByDifficulty": {
+    "H": 64,
+    "M": 176,
+    "S": 128
+  },
+  "excludedCountsByReason": {
+    "REJECT_OUT_OF_EXAM_SCOPE": 98
+  },
+  "aiAuthoredQuestionStemCount": 0,
+  "promotionPolicy": "No candidate is active. Each item requires current-law validation and QA-to-MCQ conversion before any later promotion into the mock-test bank."
+}
