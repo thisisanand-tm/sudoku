@@ -20,7 +20,7 @@ import re
 from collections import Counter
 from pathlib import Path
 
-from scripts import validate_promote_additional as base
+import validate_promote_additional as base
 
 ROOT = Path(__file__).resolve().parents[1]
 AUDIT = ROOT / "audit"
