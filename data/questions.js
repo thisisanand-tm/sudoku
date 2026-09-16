@@ -54,33 +54,33 @@ window.SOURCE_CATALOG = SOURCE_CATALOG;
 window.QUESTION_BANK = QUESTION_BANK;
 window.OPEN_BANK_MANIFEST = {
   "schemaVersion": 7,
-  "build": "V12-current-sebi-validated-464",
+  "build": "V12-current-sebi-validated-501",
   "generatedAt": "2026-09-16T00:00:00Z",
-  "activeQuestionCount": 464,
-  "preexistingCount": 464,
-  "corpusCount": 464,
+  "activeQuestionCount": 501,
+  "preexistingCount": 501,
+  "corpusCount": 501,
   "sourceOriginalMcqCount": 125,
-  "sourceQaConvertedCount": 339,
-  "additionalPrimaryValidatedCount": 94,
+  "sourceQaConvertedCount": 376,
+  "additionalPrimaryValidatedCount": 131,
   "bhashaActiveCount": 118,
   "nptelImportedCount": 7,
   "indianLegalQaConvertedCount": 242,
   "rmaniConvertedCount": 3,
   "retiredAfterValidationCount": 13,
   "validationRequiredCount": 0,
-  "sourceQualityPassCount": 464,
+  "sourceQualityPassCount": 501,
   "aiQuestionCount": 0,
-  "assistantGeneratedDistractorQuestionCount": 339,
+  "assistantGeneratedDistractorQuestionCount": 376,
   "categoryCounts": {
     "Basic Accountancy": 47,
     "Companies Law": 188,
     "Corporate Governance": 77,
-    "Securities Law": 152
+    "Securities Law": 189
   },
   "difficultyCounts": {
-    "H": 20,
-    "M": 145,
-    "S": 299
+    "H": 21,
+    "M": 161,
+    "S": 319
   },
   "sourceCounts": {
     "BHASHABENCH_FINANCE": 37,
@@ -88,7 +88,7 @@ window.OPEN_BANK_MANIFEST = {
     "NPTEL_ETHICAL_CORPORATION": 7,
     "INDIANLEGAL_QA": 242,
     "RMANI_INDIAN_LEGAL": 3,
-    "INDIAFINBENCH": 94
+    "INDIAFINBENCH": 131
   },
-  "policy": "V12 contains the prior 370 validated sourced questions plus 94 additional open-licensed source Q&A items revalidated against current SEBI consolidated primary sources on 16 September 2026 and converted to MCQ. No active question stem is AI-authored; converted items use assistant-generated distractors and are explicitly labelled as such."
+  "policy": "V12 contains the prior 370 validated sourced questions plus 131 additional open-licensed source Q&A items revalidated against current SEBI consolidated primary sources on 16 September 2026 and converted to MCQ. No active question stem is AI-authored; converted items use assistant-generated distractors and are explicitly labelled as such."
 };

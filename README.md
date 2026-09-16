@@ -46,3 +46,7 @@ On 16 September 2026, 94 additional open-licensed source Q&A items were promoted
 ### Direct-review gate
 
 The 160-item direct-review set is complete: 94 promoted, with current-source mismatches/unmapped items excluded and two reasoning-stage items withheld. The active bank now contains 464 validated sourced questions.
+
+### 500-question target
+
+The active bank now contains **501 validated sourced questions**: the prior 370, 94 current-SEBI-validated direct-review additions, and 37 current-SEBI-validated supplementary REG additions. No active question stem is AI-authored.
