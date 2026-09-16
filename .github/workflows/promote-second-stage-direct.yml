@@ -17,6 +17,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: {fetch-depth: 0}
+      - name: Install validation dependency
+        run: python -m pip install --quiet pypdf
       - name: Promote second-stage passes
         run: python scripts/promote_second_stage_direct.py
       - name: Syntax checks
@@ -72,7 +74,7 @@ jobs:
           assert m['aiQuestionCount']==0
           assert 'data/additional_validated_questions.js' in Path('index.html').read_text()
           assert 'data/additional_validated_questions.js' in Path('sw.js').read_text()
-          assert 'DIRECT_REVIEW_FINAL_REPORT' not in Path('audit/DIRECT_REVIEW_FINAL_REPORT.md').read_text()  # file is rendered prose, not a self-reference
+          assert 'DIRECT_REVIEW_FINAL_REPORT' not in Path('audit/DIRECT_REVIEW_FINAL_REPORT.md').read_text()
           print(dict(c))
           PY
       - name: Commit completed direct-review bank
