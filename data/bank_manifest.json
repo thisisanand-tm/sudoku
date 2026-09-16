@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 4,
+  "build": "V7-direct-only",
+  "generatedAt": "2026-09-16T06:35:00Z",
+  "directRelevantSourceRows": 133,
+  "duplicateDirectStemsRemoved": 2,
+  "preexistingCount": 131,
+  "corpusCount": 131,
+  "excludedFromMockCount": 0,
+  "categoryCounts": {
+    "Companies Law": 89,
+    "Securities Law": 28,
+    "Basic Accountancy": 9,
+    "Corporate Governance": 5
+  },
+  "difficultyCounts": {
+    "S": 83,
+    "M": 44,
+    "H": 4
+  },
+  "validationRequiredCount": 88,
+  "sourceQualityPassCount": 43,
+  "aiQuestionCount": 0,
+  "policy": "Only the 133 directly relevant IICA-mapped source rows are retained; two duplicate stems are collapsed, leaving 131 unique active questions. Supplementary and excluded rows are not shipped in this build.",
+  "correctedSourceDefectCount": 1,
+  "correctedSourceDefects": [
+    "BHASHA-BBL-c34090e7-097a-4f5f-90db-cfae0a97e820"
+  ]
+}
