@@ -23,7 +23,16 @@ jobs:
 
       - name: Rebuild classifier
         run: |
-          cat iica-audit/procure_part_*.b64 | base64 -d > iica-audit/procure_open_bank.py
+          cat \
+            iica-audit/procure_part_00.b64 \
+            iica-audit/procure_part_01.b64 \
+            iica-audit/procure_part_02.b64 \
+            iica-audit/p03_0.b64 \
+            iica-audit/p03_1.b64 \
+            iica-audit/p03_2.b64 \
+            iica-audit/p03_3.b64 \
+            iica-audit/procure_part_04.b64 \
+            | base64 -d > iica-audit/procure_open_bank.py
           mkdir -p data
           python -m py_compile iica-audit/procure_open_bank.py
 
