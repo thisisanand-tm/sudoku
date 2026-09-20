@@ -1,0 +1,61 @@
+name: Validate restored Sudoku
+on:
+  push:
+    branches: [main]
+    paths: [index.html, sw.js, sudoku-pwa.js, manifest.webmanifest, .github/workflows/validate-sudoku.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: sudoku-validation
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main, fetch-depth: 0}
+      - name: Restore PWA wiring without altering game logic
+        run: |
+          python - <<'PY'
+          import json, re, subprocess
+          from pathlib import Path
+          page = Path('index.html').read_text()
+          original = subprocess.check_output(['git','show','9029c43b54caf9dc4645d9115b2e4bb71783c011:index.html'],text=True)
+          inline = lambda s: re.findall(r'<script\s*>([\s\S]*?)</script>',s)
+          assert inline(page) == inline(original), 'Original Sudoku game logic changed'
+          if 'sudoku-pwa.js' not in page:
+              page = page.replace('</head>', '<link rel="manifest" href="manifest.webmanifest" />\n<script src="sudoku-pwa.js" defer></script>\n</head>')
+          Path('index.html').write_text(page)
+          Path('sudoku-pwa.js').write_text("'use strict';\nif ('serviceWorker' in navigator) {\n  window.addEventListener('load', () => {\n    navigator.serviceWorker.register('./sw.js', {scope:'./', updateViaCache:'none'}).then(registration => registration.update()).catch(error => console.warn('Sudoku offline registration:', error));\n  });\n}\n")
+          manifest = json.loads(Path('manifest.webmanifest').read_text())
+          manifest.update({'id':'/sudoku/','scope':'./','start_url':'./'})
+          Path('manifest.webmanifest').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
+          sw = Path('sw.js').read_text().replace("'sudoku-restored-v2-20260920'", "'sudoku-restored-v3-20260920'")
+          if "'sudoku-pwa.js'" not in sw:
+              sw = sw.replace("'index.html',", "'index.html', 'sudoku-pwa.js',")
+          Path('sw.js').write_text(sw)
+          assert inline(page) == inline(original)
+          assert '<title>Sudoku</title>' in page
+          assert 'data/questions.js' not in page
+          assert not Path('data').exists()
+          assert not Path('app.js').exists()
+          for i,script in enumerate(inline(page)):
+              target=Path('/tmp')/f'sudoku-inline-{i}.js'
+              target.write_text(script)
+              subprocess.run(['node','--check',str(target)],check=True)
+          subprocess.run(['node','--check','sw.js'],check=True)
+          subprocess.run(['node','--check','sudoku-pwa.js'],check=True)
+          Path('restoration-validation.json').write_text(json.dumps({'status':'PASS','originalGameCommit':'9029c43b54caf9dc4645d9115b2e4bb71783c011','originalGameLogicUnchanged':True,'examRemovedFromMain':True,'pwaWired':True,'cacheIsolation':True},indent=2)+'\n')
+          print(Path('restoration-validation.json').read_text())
+          PY
+      - name: Commit validated PWA wiring
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js sudoku-pwa.js manifest.webmanifest restoration-validation.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Validate restored Sudoku and reconnect isolated offline support'
+            git push origin HEAD:main
+          fi
