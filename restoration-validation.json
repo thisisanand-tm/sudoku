@@ -1,8 +1,9 @@
 {
   "status": "PASS",
-  "originalGameCommit": "9029c43b54caf9dc4645d9115b2e4bb71783c011",
-  "originalGameLogicUnchanged": true,
   "examRemovedFromMain": true,
   "pwaWired": true,
-  "cacheIsolation": true
+  "cacheIsolation": true,
+  "candidateRemovalBehavior": true,
+  "wrongGuessCellBackground": true,
+  "redDotRemoved": true
 }
