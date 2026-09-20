@@ -1,6 +1,6 @@
 'use strict';
 const CACHE_PREFIX = 'sudoku-';
-const CACHE = 'sudoku-restored-v4-20260920';
+const CACHE = 'sudoku-restored-v5-20260920';
 const ASSETS = ['./', 'index.html', 'sudoku-pwa.js', 'manifest.webmanifest', 'icon-512.png'];
 const ROOT = new URL(self.registration.scope);
 self.addEventListener('install', event => {
