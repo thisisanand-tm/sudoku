@@ -531,7 +531,8 @@ body{display:flex;justify-content:center}
         if(selectedVal && state.values[i]===selectedVal) d.classList.add('same');
       }
       if(i===sel) d.classList.add('selected');
-      if(state.invalidCells.has(i)) d.classList.add('error');
+      const isWrong = state.values[i] && state.values[i] !== state.solution[i];
+      if(isWrong) d.classList.add('error');
       if(state.values[i]){
         const v = document.createElement('div');
         v.className = 'val';
