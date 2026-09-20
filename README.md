@@ -1,52 +1,11 @@
-# Director Mock India — V9 Validated Source Bank
+# Sudoku
 
-Static, mobile-first PWA for practising the Indian Independent Director proficiency-assessment format.
+The original Sudoku game, restored from commit `9029c43b54caf9dc4645d9115b2e4bb71783c011`.
 
-## Active question bank
+Play: https://thisisanand-tm.github.io/sudoku/
 
-- **397 validated sourced questions are active.**
-- Source-original/corrected MCQs: **125** (118 BhashaBench + 7 NPTEL).
-- Validated open-source Q&A converted to MCQ: **245** (242 IndianLegal-QA + 3 RMani1).
-- The converted questions preserve the validated source proposition; their distractors were created for this tool and are labelled `assistant-generated-distractors`.
-- Categories: Basic Accountancy: 47, Companies Law: 188, Corporate Governance: 61, Securities Law: 74.
-- Difficulty: H: 7, M: 102, S: 261.
-- Validation-required active questions: **0**.
-- AI-authored question stems: **0**.
+The Independent Director examination application has moved to the dedicated repository https://github.com/thisisanand-tm/iica-examination and its intended site https://thisisanand-tm.github.io/iica-examination/.
 
-## Validation status
+The complete pre-migration exam source is also retained in the `backup-exam-before-migration-20260920` branch for recovery. This repository's main branch serves Sudoku, not the exam application.
 
-The 245 added questions come from a 622-item screened source-Q&A pool. Each retained item was classified KEEP or REWRITE, checked for IICA relevance/current-law suitability, then converted into a four-option MCQ. The 377 rejected candidates remain outside the active bank.
-
-## Mock format
-
-- 50 questions
-- 75 minutes
-- 50% app pass threshold
-- Per mock: 30 Companies Law, 10 Securities Law, 6 Basic Accountancy, 4 Corporate Governance.
-- Questions and answer choices are shuffled.
-- Practice, history, answer review, PWA/offline support and responsive layouts are included.
-
-## Important
-
-This is an unofficial educational preparation tool and is not affiliated with IICA, MCA, SEBI or NPTEL. Regulations can change; the active bank was reviewed on 16 September 2026.
-
-## More practice resources
-
-The home dashboard includes a responsive **More Practice Questions** section linking to the official IICA self-assessment/mock-test area plus selected free/public and paid third-party question banks. External resources are linked for additional practice only; their content is not copied into this repository and may have separate access, copyright and currentness conditions.
-
-## Automatic updates
-
-The PWA explicitly checks for a new service worker on load, when the browser tab becomes visible/focused, and periodically while open. When a newer deployed worker takes control, an already-controlled page reloads itself once automatically. First-time service-worker installation does not force an unnecessary reload. Navigations use a network-first strategy with an offline cache fallback so ordinary refreshes prefer the latest deployed page when online.
-
-
-## Additional current-SEBI validation
-
-On 16 September 2026, 94 additional open-licensed source Q&A items were promoted from the direct-review set after current-SEBI source validation and a second-stage reasoning review. Derived/calculated and unmapped items were not auto-promoted.
-
-### Direct-review gate
-
-The 160-item direct-review set is complete: 94 promoted, with current-source mismatches/unmapped items excluded and two reasoning-stage items withheld. The active bank now contains 464 validated sourced questions.
-
-### 500-question target
-
-The active bank now contains **501 validated sourced questions**: the prior 370, 94 current-SEBI-validated direct-review additions, and 37 current-SEBI-validated supplementary REG additions. No active question stem is AI-authored.
+The service worker uses a Sudoku-specific cache, removes obsolete exam caches from the old Sudoku path, and never clears browser localStorage or the new IICA application's caches.
