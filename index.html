@@ -23,6 +23,7 @@
   --btn-border:#b0b0b0;
   --accent:#111;
   --red:#ff5b73;
+  --error-bg:#ffb4bf;
   --blue:#2287f6;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
@@ -42,7 +43,7 @@ body{display:flex;justify-content:center}
 .cell.same{background:var(--same)}
 .cell.same .val{color:#111}
 .cell.selected{background:var(--sel)}
-.cell.error::after{content:"";position:absolute;right:11%;bottom:11%;width:14%;height:14%;border-radius:50%;background:var(--red)}
+.cell.error{background:var(--error-bg)!important}
 .cell .val{position:relative;z-index:2}
 .notes{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:8%;box-sizing:border-box;font-weight:500;color:#666;font-size:clamp(9px,1.95vw,14px);line-height:.9;overflow:hidden}
 .note{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;overflow:hidden;padding:1px;box-sizing:border-box}
@@ -145,7 +146,7 @@ body{display:flex;justify-content:center}
 <div class="overlay" id="helpOverlay" style="display:none">
   <div class="panel">
     <h1 style="font-size:28px">How it works</h1>
-    <p>Tap a square, then a number. Use Candidate mode for pencil marks. Auto Candidate fills and refreshes notes automatically. Wrong entries increase the error counter and mark conflicts.</p>
+    <p>Tap a square, then a number. Use Candidate mode for pencil marks. Auto Candidate fills and refreshes notes automatically. Wrong entries increase the error counter and turn the cell background red.</p>
     <div class="stack"><button class="btn" id="closeHelpBtn">Got it</button></div>
   </div>
 </div>
@@ -186,6 +187,7 @@ body{display:flex;justify-content:center}
     fixed: Array(81).fill(false),
     notes: Array.from({length:81},()=>new Set()),
     autoNotes: Array.from({length:81},()=>new Set()),
+    excludedNotes: Array.from({length:81},()=>new Set()),
     selected: -1,
     mode: 'normal',
     autoCandidate: false,
@@ -221,6 +223,7 @@ body{display:flex;justify-content:center}
       ...state,
       notes: state.notes.map(s => [...s]),
       autoNotes: state.autoNotes.map(s => [...s]),
+      excludedNotes: state.excludedNotes.map(s => [...s]),
       invalidCells: [...state.invalidCells]
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -234,6 +237,7 @@ body{display:flex;justify-content:center}
       Object.assign(state, data);
       state.notes = (data.notes || Array.from({length:81},()=>[])).map(a => new Set(a));
       state.autoNotes = (data.autoNotes || Array.from({length:81},()=>[])).map(a => new Set(a));
+      state.excludedNotes = (data.excludedNotes || Array.from({length:81},()=>[])).map(a => new Set(a));
       state.invalidCells = new Set(data.invalidCells || []);
       return true;
     }catch(e){ return false; }
@@ -368,6 +372,7 @@ body{display:flex;justify-content:center}
     state.fixed = gen.puzzle.map(v => v !== 0);
     state.notes = Array.from({length:81},()=>new Set());
     state.autoNotes = Array.from({length:81},()=>new Set());
+    state.excludedNotes = Array.from({length:81},()=>new Set());
     state.startedAt = Date.now();
     state.elapsedBeforePause = 0;
     setMode('normal');
@@ -404,6 +409,7 @@ body{display:flex;justify-content:center}
       values: state.values.slice(),
       notes: cloneNotes(state.notes),
       autoNotes: cloneNotes(state.autoNotes),
+      excludedNotes: cloneNotes(state.excludedNotes),
       errors: state.errors,
       invalid: new Set(state.invalidCells),
       autoCandidate: state.autoCandidate
@@ -417,6 +423,7 @@ body{display:flex;justify-content:center}
     state.values = prev.values.slice();
     state.notes = cloneNotes(prev.notes);
     state.autoNotes = cloneNotes(prev.autoNotes || Array.from({length:81},()=>new Set()));
+    state.excludedNotes = cloneNotes(prev.excludedNotes || Array.from({length:81},()=>new Set()));
     // Keep error count persistent like the reference app: Undo does not reduce mistakes.
     state.invalidCells = new Set(prev.invalid);
     state.autoCandidate = prev.autoCandidate;
@@ -439,17 +446,31 @@ body{display:flex;justify-content:center}
     if(i < 0 || state.fixed[i] || state.paused) return;
     pushUndo();
     if(state.mode === 'candidate'){
-      if(n===0) state.notes[i].clear();
-      else if(state.notes[i].has(n)) state.notes[i].delete(n); else state.notes[i].add(n);
+      if(n===0) {
+        state.notes[i].clear();
+        state.excludedNotes[i].clear();
+      } else if(state.autoCandidate && state.autoNotes[i].has(n)) {
+        if(state.excludedNotes[i].has(n)) state.excludedNotes[i].delete(n);
+        else {
+          state.excludedNotes[i].add(n);
+          state.notes[i].delete(n);
+        }
+      } else if(state.notes[i].has(n)) {
+        state.notes[i].delete(n);
+      } else {
+        state.notes[i].add(n);
+      }
     } else {
       if(n===0) {
         state.values[i] = 0;
         state.notes[i].clear();
         state.autoNotes[i].clear();
+        state.excludedNotes[i].clear();
       } else {
         state.values[i] = n;
         state.notes[i].clear();
         state.autoNotes[i].clear();
+        state.excludedNotes[i].clear();
         if(n !== state.solution[i]) state.errors += 1;
       }
       recomputeInvalid();
@@ -521,10 +542,11 @@ body{display:flex;justify-content:center}
         notesWrap.className = 'notes';
         const manual = state.notes[i];
         const auto = state.autoCandidate ? state.autoNotes[i] : new Set();
+        const excluded = state.excludedNotes[i] || new Set();
         for(let n=1;n<=9;n++){
           const s = document.createElement('div');
           const isManual = manual.has(n);
-          const isAuto = auto.has(n);
+          const isAuto = auto.has(n) && !excluded.has(n);
           s.className = 'note' + (isManual ? ' manual' : (isAuto ? ' auto' : ''));
           s.textContent = (isManual || isAuto) ? n : '';
           notesWrap.appendChild(s);
