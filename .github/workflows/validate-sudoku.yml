@@ -16,15 +16,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: {ref: main, fetch-depth: 0}
-      - name: Restore PWA wiring without altering game logic
+      - name: Validate Sudoku and PWA wiring
         run: |
           python - <<'PY'
           import json, re, subprocess
           from pathlib import Path
           page = Path('index.html').read_text()
-          original = subprocess.check_output(['git','show','9029c43b54caf9dc4645d9115b2e4bb71783c011:index.html'],text=True)
           inline = lambda s: re.findall(r'<script\s*>([\s\S]*?)</script>',s)
-          assert inline(page) == inline(original), 'Original Sudoku game logic changed'
           if 'sudoku-pwa.js' not in page:
               page = page.replace('</head>', '<link rel="manifest" href="manifest.webmanifest" />\n<script src="sudoku-pwa.js" defer></script>\n</head>')
           Path('index.html').write_text(page)
@@ -36,9 +34,12 @@ jobs:
           if "'sudoku-pwa.js'" not in sw:
               sw = sw.replace("'index.html',", "'index.html', 'sudoku-pwa.js',")
           Path('sw.js').write_text(sw)
-          assert inline(page) == inline(original)
           assert '<title>Sudoku</title>' in page
           assert 'data/questions.js' not in page
+          assert '.cell.error{background:var(--error-bg)!important}' in page
+          assert 'excludedNotes' in page
+          assert 'state.excludedNotes[i].add(n)' in page
+          assert '.cell.error::after' not in page
           assert not Path('data').exists()
           assert not Path('app.js').exists()
           for i,script in enumerate(inline(page)):
@@ -47,10 +48,10 @@ jobs:
               subprocess.run(['node','--check',str(target)],check=True)
           subprocess.run(['node','--check','sw.js'],check=True)
           subprocess.run(['node','--check','sudoku-pwa.js'],check=True)
-          Path('restoration-validation.json').write_text(json.dumps({'status':'PASS','originalGameCommit':'9029c43b54caf9dc4645d9115b2e4bb71783c011','originalGameLogicUnchanged':True,'examRemovedFromMain':True,'pwaWired':True,'cacheIsolation':True},indent=2)+'\n')
+          Path('restoration-validation.json').write_text(json.dumps({'status':'PASS','examRemovedFromMain':True,'pwaWired':True,'cacheIsolation':True,'candidateRemovalBehavior':True,'wrongGuessCellBackground':True,'redDotRemoved':True},indent=2)+'\n')
           print(Path('restoration-validation.json').read_text())
           PY
-      - name: Commit validated PWA wiring
+      - name: Commit validation metadata
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
